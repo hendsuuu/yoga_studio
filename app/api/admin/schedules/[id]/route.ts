@@ -1,0 +1,44 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/db/prisma";
+import { getAdminSession } from "@/lib/auth/session";
+import { scheduleSchema } from "@/lib/validators/admin";
+
+export async function PUT(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const session = await getAdminSession();
+  if (!session)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { id } = await params;
+  const body = await req.json();
+  const parsed = scheduleSchema.partial().safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: parsed.error.errors[0].message },
+      { status: 400 },
+    );
+  }
+
+  const data: Record<string, unknown> = { ...parsed.data };
+  if (data.date && typeof data.date === "string") {
+    data.date = new Date(data.date as string);
+  }
+
+  const updated = await prisma.schedule.update({ where: { id }, data });
+  return NextResponse.json(updated);
+}
+
+export async function DELETE(
+  _req: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const session = await getAdminSession();
+  if (!session)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { id } = await params;
+  await prisma.schedule.delete({ where: { id } });
+  return NextResponse.json({ success: true });
+}
