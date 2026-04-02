@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     const { fullName, email, phone, password } = parsed.data;
     const normalizedEmail = email.toLowerCase().trim();
 
-    const existing = await prisma.member.findUnique({
+    const existing = await prisma.user.findUnique({
       where: { email: normalizedEmail },
     });
 
@@ -31,12 +31,13 @@ export async function POST(req: Request) {
 
     const passwordHash = await hashPassword(password);
 
-    await prisma.member.create({
+    await prisma.user.create({
       data: {
         fullName: fullName.trim(),
         email: normalizedEmail,
         phone: phone.trim(),
         passwordHash,
+        role: "MEMBER",
         isActive: true,
       },
     });

@@ -1,3 +1,5 @@
+export type UserRole = "ADMIN" | "MEMBER" | "COACH";
+
 export type MemberSession = {
   id: string;
   fullName: string;
@@ -48,9 +50,11 @@ export type AppConfigItem = {
 export type AdminStats = {
   totalMembers: number;
   activeMembers: number;
+  totalCoaches: number;
   totalSchedules: number;
   totalRecordings: number;
   activeAnnouncements: number;
+  recentMembers: { date: string; count: number }[];
 };
 
 export type AdminMember = {
@@ -58,8 +62,28 @@ export type AdminMember = {
   fullName: string;
   email: string;
   phone: string;
+  role: UserRole;
   isActive: boolean;
   specialAccess: boolean;
   membershipExpiresAt: string | null;
   createdAt: string;
+};
+
+export type Coach = {
+  id: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  photo: string | null;
+  certificate: string | null;
+  specialty: string | null;
+  isActive: boolean;
+  createdAt: string;
+};
+
+export type AdminProfile = {
+  id: string;
+  fullName: string;
+  email: string;
+  role: UserRole;
 };

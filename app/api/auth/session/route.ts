@@ -8,8 +8,8 @@ export async function GET() {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const member = await prisma.member.findUnique({
-    where: { id: session.id },
+  const member = await prisma.user.findUnique({
+    where: { id: session.id, role: "MEMBER" },
     select: {
       id: true,
       fullName: true,

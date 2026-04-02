@@ -19,8 +19,8 @@ export async function POST(req: Request) {
 
     const { email, password } = parsed.data;
 
-    const admin = await prisma.adminUser.findUnique({
-      where: { email: email.toLowerCase().trim() },
+    const admin = await prisma.user.findUnique({
+      where: { email: email.toLowerCase().trim(), role: "ADMIN" },
     });
 
     if (!admin) {

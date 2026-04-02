@@ -16,7 +16,7 @@ function getSecret() {
 
 export type TokenPayload = {
   id: string;
-  role: "member" | "admin";
+  role: "member" | "admin" | "coach";
 };
 
 export async function createToken(payload: TokenPayload): Promise<string> {

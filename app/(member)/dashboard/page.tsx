@@ -11,7 +11,7 @@ import { useAnnouncements } from "@/hooks/use-announcements";
 import { Loader } from "@/components/ui/loader";
 import { EmptyState } from "@/components/ui/empty-state";
 import { MemberHeader } from "@/components/member/header";
-import { NavBar, TabBar, type TabKey } from "@/components/member/nav-bar";
+import { NavBar, type TabKey } from "@/components/member/nav-bar";
 import { ScheduleCard } from "@/components/member/schedule-card";
 import { RecordingCard } from "@/components/member/recording-card";
 import { AnnouncementBar } from "@/components/member/announcement-bar";
@@ -42,10 +42,10 @@ export default function DashboardPage() {
   );
 
   return (
-    <>
+    <div className="min-h-screen bg-gray-50 max-w-6xl mx-auto relative">
       <MemberHeader member={member} />
 
-      <main className="flex-1 px-5 pt-5 pb-28 space-y-5 overflow-y-auto no-scrollbar">
+      <main className="flex-1 px-4 sm:px-6 pt-5 pb-28 space-y-5 overflow-y-auto no-scrollbar">
         {/* Membership info */}
         {member.membershipExpiresAt && (
           <div className="flex gap-2">
@@ -74,9 +74,6 @@ export default function DashboardPage() {
         {announcements?.map((a) => (
           <AnnouncementBar key={a.id} message={a.message} />
         ))}
-
-        {/* Tab bar */}
-        <TabBar active={activeTab} onChange={setActiveTab} />
 
         {/* Tab Content */}
         <div className="space-y-4 animate-in">
@@ -136,6 +133,6 @@ export default function DashboardPage() {
 
       <NavBar active={activeTab} onChange={setActiveTab} />
       <WhatsAppButton phone={waPhone} />
-    </>
+    </div>
   );
 }

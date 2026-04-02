@@ -13,11 +13,11 @@ async function main() {
 
   // --- Admin User ---
   const adminHash = await bcrypt.hash("admin123456", 12);
-  await prisma.adminUser.upsert({
+  await prisma.user.upsert({
     where: { email: "admin@yogastudio.com" },
     update: {},
     create: {
-      name: "Super Admin",
+      fullName: "Super Admin",
       email: "admin@yogastudio.com",
       passwordHash: adminHash,
       role: "ADMIN",
@@ -33,6 +33,7 @@ async function main() {
       email: "aisyah@example.com",
       phone: "6281234567001",
       passwordHash: memberHash,
+      role: "MEMBER" as const,
       isActive: true,
       specialAccess: false,
       membershipExpiresAt: new Date("2026-12-31"),
@@ -42,6 +43,7 @@ async function main() {
       email: "dewi@example.com",
       phone: "6281234567002",
       passwordHash: memberHash,
+      role: "MEMBER" as const,
       isActive: true,
       specialAccess: true,
       membershipExpiresAt: new Date("2027-06-30"),
@@ -51,6 +53,7 @@ async function main() {
       email: "rina@example.com",
       phone: "6281234567003",
       passwordHash: memberHash,
+      role: "MEMBER" as const,
       isActive: true,
       specialAccess: false,
       membershipExpiresAt: new Date("2026-06-15"),
@@ -58,13 +61,63 @@ async function main() {
   ];
 
   for (const m of members) {
-    await prisma.member.upsert({
+    await prisma.user.upsert({
       where: { email: m.email },
       update: {},
       create: m,
     });
   }
   console.log("✅ Members created (password: member1234)");
+
+  // --- Coaches ---
+  const coachHash = await bcrypt.hash("coach12345", 12);
+  const coaches = [
+    {
+      fullName: "Ibu Ratna",
+      email: "ratna@yogastudio.com",
+      phone: "6281234567010",
+      passwordHash: coachHash,
+      role: "COACH" as const,
+      isActive: true,
+      photo:
+        "https://ui-avatars.com/api/?name=Ratna&background=C08497&color=fff",
+      certificate: "RYT-500",
+      specialty: "Vinyasa, Hatha",
+    },
+    {
+      fullName: "Kak Sinta",
+      email: "sinta@yogastudio.com",
+      phone: "6281234567011",
+      passwordHash: coachHash,
+      role: "COACH" as const,
+      isActive: true,
+      photo:
+        "https://ui-avatars.com/api/?name=Sinta&background=C08497&color=fff",
+      certificate: "E-RYT 200",
+      specialty: "Yin Yoga, Restorative",
+    },
+    {
+      fullName: "Coach Dian",
+      email: "dian@yogastudio.com",
+      phone: "6281234567012",
+      passwordHash: coachHash,
+      role: "COACH" as const,
+      isActive: true,
+      photo:
+        "https://ui-avatars.com/api/?name=Dian&background=C08497&color=fff",
+      certificate: "RYT-200",
+      specialty: "Power Yoga, Ashtanga",
+    },
+  ];
+
+  for (const c of coaches) {
+    await prisma.user.upsert({
+      where: { email: c.email },
+      update: {},
+      create: c,
+    });
+  }
+  console.log("✅ Coaches created (password: coach12345)");
 
   // --- Schedules ---
   const schedules = [

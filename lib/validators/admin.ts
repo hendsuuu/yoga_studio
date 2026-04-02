@@ -44,7 +44,29 @@ export const memberUpdateSchema = z.object({
   membershipExpiresAt: z.string().optional(),
 });
 
+export const coachSchema = z.object({
+  fullName: z.string().min(1, "Nama wajib diisi"),
+  email: z.string().email("Email tidak valid"),
+  phone: z.string().optional(),
+  photo: z.string().optional(),
+  certificate: z.string().optional(),
+  specialty: z.string().optional(),
+  isActive: z.boolean().default(true),
+});
+
+export const coachUpdateSchema = z.object({
+  fullName: z.string().min(1).optional(),
+  email: z.string().email().optional(),
+  phone: z.string().optional(),
+  photo: z.string().optional(),
+  certificate: z.string().optional(),
+  specialty: z.string().optional(),
+  isActive: z.boolean().optional(),
+});
+
 export type ScheduleInput = z.infer<typeof scheduleSchema>;
 export type RecordingInput = z.infer<typeof recordingSchema>;
 export type AnnouncementInput = z.infer<typeof announcementSchema>;
 export type AppConfigInput = z.infer<typeof appConfigSchema>;
+export type CoachInput = z.infer<typeof coachSchema>;
+export type CoachUpdateInput = z.infer<typeof coachUpdateSchema>;

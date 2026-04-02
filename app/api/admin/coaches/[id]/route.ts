@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { getAdminSession } from "@/lib/auth/session";
-import { memberUpdateSchema } from "@/lib/validators/admin";
+import { coachUpdateSchema } from "@/lib/validators/admin";
 
 export async function PUT(
   req: Request,
@@ -13,7 +13,7 @@ export async function PUT(
 
   const { id } = await params;
   const body = await req.json();
-  const parsed = memberUpdateSchema.safeParse(body);
+  const parsed = coachUpdateSchema.safeParse(body);
 
   if (!parsed.success) {
     return NextResponse.json(
@@ -22,17 +22,9 @@ export async function PUT(
     );
   }
 
-  const data: Record<string, unknown> = { ...parsed.data };
-  if (
-    data.membershipExpiresAt &&
-    typeof data.membershipExpiresAt === "string"
-  ) {
-    data.membershipExpiresAt = new Date(data.membershipExpiresAt as string);
-  }
-
   const updated = await prisma.user.update({
-    where: { id, role: "MEMBER" },
-    data,
+    where: { id, role: "COACH" },
+    data: parsed.data,
   });
   return NextResponse.json(updated);
 }
@@ -46,6 +38,6 @@ export async function DELETE(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  await prisma.user.delete({ where: { id, role: "MEMBER" } });
+  await prisma.user.delete({ where: { id, role: "COACH" } });
   return NextResponse.json({ success: true });
 }

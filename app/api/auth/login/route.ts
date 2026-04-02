@@ -19,8 +19,8 @@ export async function POST(req: Request) {
 
     const { email, password } = parsed.data;
 
-    const member = await prisma.member.findUnique({
-      where: { email: email.toLowerCase().trim() },
+    const member = await prisma.user.findUnique({
+      where: { email: email.toLowerCase().trim(), role: "MEMBER" },
     });
 
     if (!member) {

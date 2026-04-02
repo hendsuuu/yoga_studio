@@ -60,8 +60,8 @@ export default function AdminConfigPage() {
   }
 
   return (
-    <div className="max-w-3xl">
-      <div className="flex items-center justify-between mb-6">
+    <div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-serif italic text-secondary">
             App Config

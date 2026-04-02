@@ -25,7 +25,7 @@ interface NavBarProps {
 
 export function NavBar({ active, onChange }: NavBarProps) {
   return (
-    <div className="absolute bottom-5 left-4 right-4 z-50">
+    <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md">
       <nav className="bg-white/70 backdrop-blur-2xl rounded-3xl border border-white/50 px-2 py-3 flex justify-around items-center shadow-lg ring-1 ring-black/5">
         {tabs.map((tab) => (
           <button
@@ -42,26 +42,6 @@ export function NavBar({ active, onChange }: NavBarProps) {
           </button>
         ))}
       </nav>
-    </div>
-  );
-}
-
-export function TabBar({ active, onChange }: NavBarProps) {
-  return (
-    <div className="bg-gray-100 p-1.5 rounded-2xl grid grid-cols-5 gap-1 border border-gray-200/50">
-      {tabs.map((tab) => (
-        <button
-          key={tab.key}
-          onClick={() => onChange(tab.key)}
-          className={cn(
-            "py-2.5 rounded-xl transition-all text-[10px] font-bold uppercase tracking-tight",
-            active === tab.key
-              ? "bg-white shadow-sm text-primary"
-              : "text-gray-400",
-          )}>
-          {tab.label}
-        </button>
-      ))}
     </div>
   );
 }

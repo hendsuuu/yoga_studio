@@ -7,21 +7,17 @@ export async function GET() {
   if (!session)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const members = await prisma.user.findMany({
-    where: { role: "MEMBER" },
-    orderBy: { createdAt: "desc" },
+  const admin = await prisma.user.findUnique({
+    where: { id: session.id },
     select: {
       id: true,
       fullName: true,
       email: true,
-      phone: true,
       role: true,
-      isActive: true,
-      specialAccess: true,
-      membershipExpiresAt: true,
-      createdAt: true,
     },
   });
 
-  return NextResponse.json(members);
+  if (!admin) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  return NextResponse.json(admin);
 }

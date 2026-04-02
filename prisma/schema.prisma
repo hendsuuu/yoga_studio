@@ -7,32 +7,30 @@ datasource db {
     provider = "postgresql"
 }
 
-model Member {
+enum Role {
+    ADMIN
+    MEMBER
+    COACH
+}
+
+model User {
     id                  String       @id @default(cuid())
     fullName            String
     email               String       @unique
-    phone               String
+    phone               String       @default("")
     passwordHash        String
+    role                Role         @default(MEMBER)
     isActive            Boolean      @default(true)
     specialAccess       Boolean      @default(false)
     membershipExpiresAt DateTime?
+    photo               String?
+    certificate         String?
+    specialty           String?
     createdAt           DateTime     @default(now())
     updatedAt           DateTime     @updatedAt
     aiUsageLogs         AiUsageLog[]
 
-    @@map("members")
-}
-
-model AdminUser {
-    id           String   @id @default(cuid())
-    name         String
-    email        String   @unique
-    passwordHash String
-    role         String   @default("ADMIN")
-    createdAt    DateTime @default(now())
-    updatedAt    DateTime @updatedAt
-
-    @@map("admin_users")
+    @@map("users")
 }
 
 model Schedule {
@@ -96,7 +94,7 @@ model AiUsageLog {
     feature   String
     prompt    String?
     createdAt DateTime @default(now())
-    member    Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+    member    User     @relation(fields: [memberId], references: [id], onDelete: Cascade)
 
     @@map("ai_usage_logs")
 }

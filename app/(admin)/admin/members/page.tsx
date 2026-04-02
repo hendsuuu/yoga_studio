@@ -85,8 +85,8 @@ export default function AdminMembersPage() {
   );
 
   return (
-    <div className="max-w-5xl">
-      <div className="flex items-center justify-between mb-6">
+    <div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-serif italic text-secondary">Members</h1>
           <p className="text-sm text-gray-400">Kelola data member</p>
