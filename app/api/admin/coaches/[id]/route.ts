@@ -22,8 +22,8 @@ export async function PUT(
     );
   }
 
-  const updated = await prisma.user.update({
-    where: { id, role: "COACH" },
+  const updated = await prisma.coach.update({
+    where: { id },
     data: parsed.data,
   });
   return NextResponse.json(updated);
@@ -38,6 +38,6 @@ export async function DELETE(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  await prisma.user.delete({ where: { id, role: "COACH" } });
+  await prisma.coach.delete({ where: { id } });
   return NextResponse.json({ success: true });
 }

@@ -18,7 +18,7 @@ export async function GET() {
   ] = await Promise.all([
     prisma.user.count({ where: { role: "MEMBER" } }),
     prisma.user.count({ where: { role: "MEMBER", isActive: true } }),
-    prisma.user.count({ where: { role: "COACH" } }),
+    prisma.coach.count(),
     prisma.schedule.count(),
     prisma.recording.count(),
     prisma.announcement.count({ where: { isActive: true } }),

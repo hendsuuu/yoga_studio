@@ -45,9 +45,9 @@ export const memberUpdateSchema = z.object({
 });
 
 export const coachSchema = z.object({
-  fullName: z.string().min(1, "Nama wajib diisi"),
-  email: z.string().email("Email tidak valid"),
+  name: z.string().min(1, "Nama wajib diisi"),
   phone: z.string().optional(),
+  gender: z.string().optional(),
   photo: z.string().optional(),
   certificate: z.string().optional(),
   specialty: z.string().optional(),
@@ -55,9 +55,9 @@ export const coachSchema = z.object({
 });
 
 export const coachUpdateSchema = z.object({
-  fullName: z.string().min(1).optional(),
-  email: z.string().email().optional(),
+  name: z.string().min(1).optional(),
   phone: z.string().optional(),
+  gender: z.string().optional(),
   photo: z.string().optional(),
   certificate: z.string().optional(),
   specialty: z.string().optional(),

@@ -26,14 +26,20 @@ import { ConfirmDialog, FormModal } from "@/components/admin/dialogs";
 import type { Coach } from "@/types";
 
 const emptyForm = {
-  fullName: "",
-  email: "",
+  name: "",
   phone: "",
+  gender: "",
   photo: "",
   certificate: "",
   specialty: "",
   isActive: true,
 };
+
+const genderOptions = [
+  { value: "", label: "Pilih Gender (Opsional)" },
+  { value: "Perempuan", label: "Perempuan" },
+  { value: "Laki-laki", label: "Laki-laki" },
+];
 
 export default function AdminCoachesPage() {
   const { data: coaches, isLoading } = useAdminCoaches();
@@ -55,9 +61,9 @@ export default function AdminCoachesPage() {
 
   function openEdit(c: Coach) {
     setForm({
-      fullName: c.fullName,
-      email: c.email,
-      phone: c.phone,
+      name: c.name,
+      phone: c.phone || "",
+      gender: c.gender || "",
       photo: c.photo || "",
       certificate: c.certificate || "",
       specialty: c.specialty || "",
@@ -74,7 +80,7 @@ export default function AdminCoachesPage() {
         toast.success("Coach diperbarui");
       } else {
         await createCoach.mutateAsync(form);
-        toast.success("Coach dibuat (Password default: coach12345)");
+        toast.success("Coach berhasil ditambahkan");
       }
       setShowForm(false);
     } catch (e: unknown) {
@@ -93,10 +99,8 @@ export default function AdminCoachesPage() {
     }
   }
 
-  const filtered = (coaches || []).filter(
-    (c) =>
-      c.fullName.toLowerCase().includes(search.toLowerCase()) ||
-      c.email.toLowerCase().includes(search.toLowerCase()),
+  const filtered = (coaches || []).filter((c) =>
+    c.name.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
@@ -113,7 +117,7 @@ export default function AdminCoachesPage() {
 
       <div className="mb-4">
         <Input
-          placeholder="Cari nama atau email..."
+          placeholder="Cari nama coach..."
           icon={<Search className="w-4 h-4" />}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -138,7 +142,10 @@ export default function AdminCoachesPage() {
                     Coach
                   </th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase hidden md:table-cell">
-                    Email
+                    No. HP
+                  </th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase hidden md:table-cell">
+                    Gender
                   </th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase hidden lg:table-cell">
                     Sertifikat
@@ -164,18 +171,21 @@ export default function AdminCoachesPage() {
                         <img
                           src={
                             c.photo ||
-                            `https://ui-avatars.com/api/?name=${encodeURIComponent(c.fullName)}&background=C08497&color=fff`
+                            `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=C08497&color=fff`
                           }
-                          alt={c.fullName}
+                          alt={c.name}
                           className="w-9 h-9 rounded-lg object-cover border border-gray-100"
                         />
                         <span className="font-medium text-secondary">
-                          {c.fullName}
+                          {c.name}
                         </span>
                       </div>
                     </td>
                     <td className="px-4 py-3 text-gray-500 hidden md:table-cell">
-                      {c.email}
+                      {c.phone || "—"}
+                    </td>
+                    <td className="px-4 py-3 text-gray-500 text-xs hidden md:table-cell">
+                      {c.gender || "—"}
                     </td>
                     <td className="px-4 py-3 text-gray-500 text-xs hidden lg:table-cell">
                       {c.certificate || "—"}
@@ -227,21 +237,33 @@ export default function AdminCoachesPage() {
         onClose={() => setShowForm(false)}>
         <div className="space-y-3">
           <Input
-            label="Nama Lengkap"
-            value={form.fullName}
-            onChange={(e) => setForm({ ...form, fullName: e.target.value })}
+            label="Nama Coach *"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
           />
-          <Input
-            label="Email"
-            type="email"
-            value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
-          />
-          <Input
-            label="Phone"
-            value={form.phone}
-            onChange={(e) => setForm({ ...form, phone: e.target.value })}
-          />
+          <div className="grid grid-cols-2 gap-3">
+            <Input
+              label="No. HP"
+              placeholder="08xxxxxxxxxx"
+              value={form.phone}
+              onChange={(e) => setForm({ ...form, phone: e.target.value })}
+            />
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 mb-1.5">
+                Gender
+              </label>
+              <select
+                value={form.gender}
+                onChange={(e) => setForm({ ...form, gender: e.target.value })}
+                className="w-full bg-white border border-gray-200 rounded-xl py-2.5 px-3 text-sm outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/10 transition-all">
+                {genderOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
           <Input
             label="Foto URL"
             value={form.photo}
@@ -272,11 +294,6 @@ export default function AdminCoachesPage() {
             />
             Aktif
           </label>
-          {!editingId && (
-            <p className="text-[10px] text-gray-400">
-              Password default untuk coach baru: coach12345
-            </p>
-          )}
           <div className="flex gap-3 justify-end pt-2">
             <Button variant="outline" onClick={() => setShowForm(false)}>
               Batal

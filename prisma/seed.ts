@@ -69,40 +69,30 @@ async function main() {
   }
   console.log("✅ Members created (password: member1234)");
 
-  // --- Coaches ---
-  const coachHash = await bcrypt.hash("coach12345", 12);
-  const coaches = [
+  // --- Coaches (Data Master) ---
+  const coachData = [
     {
-      fullName: "Ibu Ratna",
-      email: "ratna@yogastudio.com",
+      name: "Ibu Ratna",
       phone: "6281234567010",
-      passwordHash: coachHash,
-      role: "COACH" as const,
-      isActive: true,
+      gender: "Perempuan",
       photo:
         "https://ui-avatars.com/api/?name=Ratna&background=C08497&color=fff",
       certificate: "RYT-500",
       specialty: "Vinyasa, Hatha",
     },
     {
-      fullName: "Kak Sinta",
-      email: "sinta@yogastudio.com",
+      name: "Kak Sinta",
       phone: "6281234567011",
-      passwordHash: coachHash,
-      role: "COACH" as const,
-      isActive: true,
+      gender: "Perempuan",
       photo:
         "https://ui-avatars.com/api/?name=Sinta&background=C08497&color=fff",
       certificate: "E-RYT 200",
       specialty: "Yin Yoga, Restorative",
     },
     {
-      fullName: "Coach Dian",
-      email: "dian@yogastudio.com",
+      name: "Coach Dian",
       phone: "6281234567012",
-      passwordHash: coachHash,
-      role: "COACH" as const,
-      isActive: true,
+      gender: "Laki-laki",
       photo:
         "https://ui-avatars.com/api/?name=Dian&background=C08497&color=fff",
       certificate: "RYT-200",
@@ -110,14 +100,16 @@ async function main() {
     },
   ];
 
-  for (const c of coaches) {
-    await prisma.user.upsert({
-      where: { email: c.email },
-      update: {},
-      create: c,
+  for (const c of coachData) {
+    // Use name to check if already exists (simple approach)
+    const existing = await prisma.coach.findFirst({
+      where: { name: c.name },
     });
+    if (!existing) {
+      await prisma.coach.create({ data: c });
+    }
   }
-  console.log("✅ Coaches created (password: coach12345)");
+  console.log("✅ Coaches created (data master)");
 
   // --- Schedules ---
   const schedules = [

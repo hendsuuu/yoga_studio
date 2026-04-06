@@ -63,7 +63,7 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
   const [duration, setDuration] = useState(0);
   const [playMode, setPlayMode] = useState<PlayMode>("sequential");
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const animFrameRef = useRef<number | null>(null);
   const playModeRef = useRef<PlayMode>(playMode);
   const tracksRef = useRef<MusicTrack[]>(tracks);
 
@@ -75,43 +75,64 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     tracksRef.current = tracks;
   }, [tracks]);
 
-  const clearProgressInterval = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
+  const stopProgressTracking = useCallback(() => {
+    if (animFrameRef.current) {
+      cancelAnimationFrame(animFrameRef.current);
+      animFrameRef.current = null;
     }
   }, []);
 
   const startProgressTracking = useCallback(() => {
-    clearProgressInterval();
-    intervalRef.current = setInterval(() => {
+    stopProgressTracking();
+    function tick() {
       if (audioRef.current) {
         setProgress(audioRef.current.currentTime);
       }
-    }, 250);
-  }, [clearProgressInterval]);
+      animFrameRef.current = requestAnimationFrame(tick);
+    }
+    animFrameRef.current = requestAnimationFrame(tick);
+  }, [stopProgressTracking]);
 
   const play = useCallback(
     (track: MusicTrack) => {
+      // Cleanup previous audio
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.removeAttribute("src");
+        audioRef.current.load();
         audioRef.current = null;
       }
+      stopProgressTracking();
 
-      const audio = new Audio(track.url);
+      const audio = new Audio();
       audioRef.current = audio;
+
+      // Set state immediately for UI responsiveness
+      setCurrentTrack(track);
+      setProgress(0);
+      setDuration(0);
 
       audio.addEventListener("loadedmetadata", () => {
         setDuration(audio.duration);
       });
+
+      audio.addEventListener("canplay", () => {
+        // Only play if this audio is still the current one
+        if (audioRef.current === audio) {
+          audio.play().then(() => {
+            setIsPlaying(true);
+            startProgressTracking();
+          }).catch(() => {
+            setIsPlaying(false);
+          });
+        }
+      }, { once: true });
 
       audio.addEventListener("ended", () => {
         const mode = playModeRef.current;
         const allTracks = tracksRef.current;
 
         if (mode === "loop-one") {
-          // Replay the same track
           audio.currentTime = 0;
           audio.play().catch(() => setIsPlaying(false));
           return;
@@ -133,37 +154,36 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
           setTimeout(() => play(allTracks[idx + 1]), 100);
         } else {
           setIsPlaying(false);
-          clearProgressInterval();
+          stopProgressTracking();
         }
       });
 
       audio.addEventListener("error", () => {
         setIsPlaying(false);
-        clearProgressInterval();
+        stopProgressTracking();
       });
 
-      audio.play().catch(() => {
-        setIsPlaying(false);
-      });
-
-      setCurrentTrack(track);
-      setIsPlaying(true);
-      setProgress(0);
-      startProgressTracking();
+      // Set source and begin loading — canplay handler will call play()
+      audio.preload = "auto";
+      audio.src = track.url;
+      audio.load();
     },
-    [clearProgressInterval, startProgressTracking],
+    [stopProgressTracking, startProgressTracking],
   );
 
   const pause = useCallback(() => {
     audioRef.current?.pause();
     setIsPlaying(false);
-    clearProgressInterval();
-  }, [clearProgressInterval]);
+    stopProgressTracking();
+  }, [stopProgressTracking]);
 
   const resume = useCallback(() => {
-    audioRef.current?.play().catch(() => {});
-    setIsPlaying(true);
-    startProgressTracking();
+    if (audioRef.current) {
+      audioRef.current.play().then(() => {
+        setIsPlaying(true);
+        startProgressTracking();
+      }).catch(() => {});
+    }
   }, [startProgressTracking]);
 
   const next = useCallback(() => {
@@ -204,15 +224,16 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
   const stop = useCallback(() => {
     if (audioRef.current) {
       audioRef.current.pause();
-      audioRef.current.currentTime = 0;
+      audioRef.current.removeAttribute("src");
+      audioRef.current.load();
       audioRef.current = null;
     }
     setCurrentTrack(null);
     setIsPlaying(false);
     setProgress(0);
     setDuration(0);
-    clearProgressInterval();
-  }, [clearProgressInterval]);
+    stopProgressTracking();
+  }, [stopProgressTracking]);
 
   const cyclePlayMode = useCallback(() => {
     setPlayMode((prev) => {
@@ -224,12 +245,12 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     return () => {
-      clearProgressInterval();
+      stopProgressTracking();
       if (audioRef.current) {
         audioRef.current.pause();
       }
     };
-  }, [clearProgressInterval]);
+  }, [stopProgressTracking]);
 
   return (
     <AudioPlayerContext.Provider

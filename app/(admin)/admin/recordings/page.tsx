@@ -10,11 +10,13 @@ import {
   useUpdateRecording,
   useDeleteRecording,
 } from "@/hooks/use-admin-recordings";
+import { useAdminCoaches } from "@/hooks/use-admin-coaches";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader } from "@/components/ui/loader";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ConfirmDialog, FormModal } from "@/components/admin/dialogs";
+import { CoachSelect } from "@/components/admin/coach-select";
 import { formatHumanDate } from "@/lib/utils";
 import type { Recording } from "@/types";
 
@@ -29,6 +31,7 @@ const emptyForm = {
 
 export default function AdminRecordingsPage() {
   const { data: recordings, isLoading } = useAdminRecordings();
+  const { data: coaches } = useAdminCoaches();
   const createRecording = useCreateRecording();
   const updateRecording = useUpdateRecording();
   const deleteRecording = useDeleteRecording();
@@ -68,8 +71,8 @@ export default function AdminRecordingsPage() {
         toast.success("Recording dibuat");
       }
       setShowForm(false);
-    } catch (e: any) {
-      toast.error(e.message);
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Terjadi kesalahan");
     }
   }
 
@@ -79,8 +82,8 @@ export default function AdminRecordingsPage() {
       await deleteRecording.mutateAsync(deleting);
       toast.success("Recording dihapus");
       setDeleting(null);
-    } catch (e: any) {
-      toast.error(e.message);
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Terjadi kesalahan");
     }
   }
 
@@ -211,10 +214,11 @@ export default function AdminRecordingsPage() {
               onChange={(e) => setForm({ ...form, duration: e.target.value })}
             />
           </div>
-          <Input
+          <CoachSelect
             label="Coach"
             value={form.coach}
-            onChange={(e) => setForm({ ...form, coach: e.target.value })}
+            onChange={(name) => setForm({ ...form, coach: name })}
+            coaches={coaches || []}
           />
           <Input
             label="URL Video"

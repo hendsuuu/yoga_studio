@@ -1,4 +1,4 @@
-export type UserRole = "ADMIN" | "MEMBER" | "COACH";
+export type UserRole = "ADMIN" | "MEMBER";
 
 export type MemberSession = {
   id: string;
@@ -71,9 +71,9 @@ export type AdminMember = {
 
 export type Coach = {
   id: string;
-  fullName: string;
-  email: string;
-  phone: string;
+  name: string;
+  phone: string | null;
+  gender: string | null;
   photo: string | null;
   certificate: string | null;
   specialty: string | null;

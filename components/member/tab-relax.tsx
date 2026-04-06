@@ -74,7 +74,7 @@ export function TabRelax() {
   if (loading) return <Loader message="Memuat musik..." />;
 
   return (
-    <div className="max-w-2xl mx-auto space-y-4">
+    <div className="max-w-6xl mx-auto space-y-4">
       {/* Category filter + play mode */}
       <div className="flex items-center gap-2">
         <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 flex-1">

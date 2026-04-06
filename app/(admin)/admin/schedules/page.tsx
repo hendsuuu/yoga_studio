@@ -10,13 +10,15 @@ import {
   useUpdateSchedule,
   useDeleteSchedule,
 } from "@/hooks/use-admin-schedules";
+import { useAdminCoaches } from "@/hooks/use-admin-coaches";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader } from "@/components/ui/loader";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ConfirmDialog, FormModal } from "@/components/admin/dialogs";
+import { CoachSelect } from "@/components/admin/coach-select";
 import { formatHumanDate } from "@/lib/utils";
-import type { Schedule } from "@/types";
+import type { Schedule, Coach } from "@/types";
 
 const emptyForm = {
   title: "",
@@ -34,6 +36,7 @@ const emptyForm = {
 
 export default function AdminSchedulesPage() {
   const { data: schedules, isLoading } = useAdminSchedules();
+  const { data: coaches } = useAdminCoaches();
   const createSchedule = useCreateSchedule();
   const updateSchedule = useUpdateSchedule();
   const deleteSchedule = useDeleteSchedule();
@@ -68,6 +71,15 @@ export default function AdminSchedulesPage() {
     setShowForm(true);
   }
 
+  function handleCoachSelect(name: string, coach?: Coach) {
+    setForm((prev) => ({
+      ...prev,
+      coach: name,
+      coachPhoto: coach?.photo || "",
+      certificate: coach?.certificate || "",
+    }));
+  }
+
   async function handleSubmit() {
     try {
       if (editingId) {
@@ -78,8 +90,8 @@ export default function AdminSchedulesPage() {
         toast.success("Schedule dibuat");
       }
       setShowForm(false);
-    } catch (e: any) {
-      toast.error(e.message);
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Terjadi kesalahan");
     }
   }
 
@@ -89,8 +101,8 @@ export default function AdminSchedulesPage() {
       await deleteSchedule.mutateAsync(deleting);
       toast.success("Schedule dihapus");
       setDeleting(null);
-    } catch (e: any) {
-      toast.error(e.message);
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Terjadi kesalahan");
     }
   }
 
@@ -219,24 +231,11 @@ export default function AdminSchedulesPage() {
               onChange={(e) => setForm({ ...form, timeRange: e.target.value })}
             />
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <Input
-              label="Coach"
-              value={form.coach}
-              onChange={(e) => setForm({ ...form, coach: e.target.value })}
-            />
-            <Input
-              label="Sertifikat"
-              value={form.certificate}
-              onChange={(e) =>
-                setForm({ ...form, certificate: e.target.value })
-              }
-            />
-          </div>
-          <Input
-            label="Foto Coach URL"
-            value={form.coachPhoto}
-            onChange={(e) => setForm({ ...form, coachPhoto: e.target.value })}
+          <CoachSelect
+            label="Coach"
+            value={form.coach}
+            onChange={handleCoachSelect}
+            coaches={coaches || []}
           />
           <Input
             label="Perlengkapan"

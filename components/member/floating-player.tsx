@@ -57,12 +57,12 @@ export function FloatingPlayer() {
   return (
     <div className="fixed top-0 left-0 right-0 z-[200] animate-in slide-in-from-top duration-300">
       {/* Progress bar thin line */}
-      <div className="h-0.5 bg-gray-200 w-full">
+      {/* <div className="h-0.5 bg-gray-200 w-full">
         <div
           className="h-full bg-primary transition-all duration-200"
           style={{ width: `${progressPercent}%` }}
         />
-      </div>
+      </div> */}
 
       {/* Mini player */}
       <div className="bg-white/95 backdrop-blur-xl border-b border-gray-100 shadow-lg">
