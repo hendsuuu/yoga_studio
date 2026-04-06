@@ -1,12 +1,12 @@
 "use client";
 
-import { Menu, User } from "lucide-react";
+import { Menu, PanelLeftClose, PanelLeft, User } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useSidebar } from "./sidebar-context";
 import type { AdminProfile } from "@/types";
 
 export function AdminTopbar() {
-  const { setMobileOpen } = useSidebar();
+  const { collapsed, setCollapsed, setMobileOpen } = useSidebar();
 
   const { data: profile } = useQuery<AdminProfile>({
     queryKey: ["admin", "profile"],
@@ -19,12 +19,26 @@ export function AdminTopbar() {
 
   return (
     <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-xl border-b border-gray-100 px-4 lg:px-6 h-14 flex items-center justify-between gap-4">
-      {/* Mobile menu toggle */}
-      <button
-        onClick={() => setMobileOpen(true)}
-        className="lg:hidden p-2 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-all">
-        <Menu className="w-5 h-5" />
-      </button>
+      {/* Sidebar toggle */}
+      <div className="flex items-center gap-2">
+        {/* Mobile: open sidebar */}
+        <button
+          onClick={() => setMobileOpen(true)}
+          className="lg:hidden p-2 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-all">
+          <Menu className="w-5 h-5" />
+        </button>
+        {/* Desktop: collapse/expand sidebar */}
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="hidden lg:flex p-2 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-all"
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}>
+          {collapsed ? (
+            <PanelLeft className="w-5 h-5" />
+          ) : (
+            <PanelLeftClose className="w-5 h-5" />
+          )}
+        </button>
+      </div>
 
       <div className="flex-1" />
 

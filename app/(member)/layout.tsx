@@ -4,8 +4,8 @@ export default function MemberLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-surface min-h-screen flex justify-center">
-      <div className="w-full max-w-[480px] bg-white min-h-screen shadow-xl relative flex flex-col border-x border-gray-100">
+    <div className="bg-surface min-h-screen">
+      <div className="w-full bg-gray-50 min-h-screen relative flex flex-col">
         {children}
       </div>
     </div>

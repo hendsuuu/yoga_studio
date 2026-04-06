@@ -41,7 +41,11 @@ export function LoginForm() {
       }
 
       toast.success("Login berhasil!");
-      router.push("/dashboard");
+      if (body.role === "admin") {
+        router.push("/admin");
+      } else {
+        router.push("/dashboard");
+      }
       router.refresh();
     } catch {
       toast.error("Terjadi kesalahan");

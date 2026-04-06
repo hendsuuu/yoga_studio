@@ -11,8 +11,7 @@ import {
   Settings,
   LogOut,
   Dumbbell,
-  ChevronLeft,
-  ChevronRight,
+  Music,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -26,6 +25,7 @@ const links = [
   { href: "/admin/schedules", icon: Calendar, label: "Schedules" },
   { href: "/admin/recordings", icon: Video, label: "Recordings" },
   { href: "/admin/announcements", icon: Megaphone, label: "Announcements" },
+  { href: "/admin/music", icon: Music, label: "Music" },
   { href: "/admin/config", icon: Settings, label: "Config" },
 ];
 
@@ -40,7 +40,7 @@ export function AdminSidebar() {
     setLogoutLoading(true);
     await fetch("/api/admin/auth/logout", { method: "POST" });
     toast.success("Logout berhasil");
-    router.push("/admin-login");
+    router.push("/login");
     router.refresh();
   }
 
@@ -116,22 +116,6 @@ export function AdminSidebar() {
             );
           })}
         </nav>
-
-        {/* Toggle collapse - desktop only */}
-        <div className="p-3 border-t border-gray-50 hidden lg:block">
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="flex items-center justify-center gap-2 w-full px-3 py-2 rounded-xl text-sm text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-all">
-            {collapsed ? (
-              <ChevronRight className="w-4 h-4" />
-            ) : (
-              <>
-                <ChevronLeft className="w-4 h-4" />
-                <span>Tutup</span>
-              </>
-            )}
-          </button>
-        </div>
 
         {/* Logout */}
         <div className="p-3">

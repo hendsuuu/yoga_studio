@@ -230,9 +230,8 @@ async function main() {
 
   // --- App Config ---
   const configs = [
-    { key: "whatsapp_admin", value: "6281234567890" },
-    { key: "app_name", value: "Virtual Studio" },
-    { key: "app_tagline", value: "Premium Yoga Experience" },
+    { key: "wa_admin", value: "6281234567890" },
+    { key: "email_admin", value: "admin@yogastudio.com" },
   ];
 
   for (const c of configs) {

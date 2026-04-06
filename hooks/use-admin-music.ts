@@ -1,9 +1,9 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { AdminMember } from "@/types";
+import type { MusicTrack } from "@/types";
 
-const KEY = ["admin", "members"];
+const KEY = ["admin", "music"];
 
 async function apiFetch(url: string, options?: RequestInit) {
   const res = await fetch(url, options);
@@ -14,18 +14,18 @@ async function apiFetch(url: string, options?: RequestInit) {
   return res.json();
 }
 
-export function useAdminMembers() {
-  return useQuery<AdminMember[]>({
+export function useAdminMusic() {
+  return useQuery<MusicTrack[]>({
     queryKey: KEY,
-    queryFn: () => apiFetch("/api/admin/members"),
+    queryFn: () => apiFetch("/api/admin/music"),
   });
 }
 
-export function useCreateMember() {
+export function useCreateMusic() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: Record<string, unknown>) =>
-      apiFetch("/api/admin/members", {
+    mutationFn: (data: Omit<MusicTrack, "id" | "isActive">) =>
+      apiFetch("/api/admin/music", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -34,11 +34,11 @@ export function useCreateMember() {
   });
 }
 
-export function useUpdateMember() {
+export function useUpdateMusic() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Record<string, unknown> }) =>
-      apiFetch(`/api/admin/members/${id}`, {
+      apiFetch(`/api/admin/music/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -47,11 +47,11 @@ export function useUpdateMember() {
   });
 }
 
-export function useDeleteMember() {
+export function useDeleteMusic() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) =>
-      apiFetch(`/api/admin/members/${id}`, { method: "DELETE" }),
+      apiFetch(`/api/admin/music/${id}`, { method: "DELETE" }),
     onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
   });
 }

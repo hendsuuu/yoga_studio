@@ -8,7 +8,7 @@ export async function GET() {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const member = await prisma.user.findUnique({
+  const member = await prisma.user.findFirst({
     where: { id: session.id, role: "MEMBER" },
     select: {
       id: true,
@@ -23,6 +23,19 @@ export async function GET() {
 
   if (!member) {
     return NextResponse.json({ error: "Member not found" }, { status: 404 });
+  }
+
+  // Auto-deactivate if membership has expired
+  if (
+    member.isActive &&
+    member.membershipExpiresAt &&
+    new Date(member.membershipExpiresAt) < new Date()
+  ) {
+    await prisma.user.update({
+      where: { id: member.id },
+      data: { isActive: false },
+    });
+    member.isActive = false;
   }
 
   return NextResponse.json(member);

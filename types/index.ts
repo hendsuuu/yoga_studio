@@ -87,3 +87,13 @@ export type AdminProfile = {
   email: string;
   role: UserRole;
 };
+
+export type MusicTrack = {
+  id: string;
+  title: string;
+  artist: string;
+  duration: string;
+  url: string;
+  category: string;
+  isActive: boolean;
+};

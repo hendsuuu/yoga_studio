@@ -4,6 +4,7 @@ import { verifyPassword } from "@/lib/auth/password";
 import { createToken, setAdminCookie } from "@/lib/auth/session";
 import { loginSchema } from "@/lib/validators/auth";
 import { cookies } from "next/headers";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: Request) {
   try {
@@ -11,6 +12,9 @@ export async function POST(req: Request) {
     const parsed = loginSchema.safeParse(body);
 
     if (!parsed.success) {
+      logger.warn("admin/auth/login", "Validation failed", {
+        errors: parsed.error.errors,
+      });
       return NextResponse.json(
         { error: parsed.error.errors[0].message },
         { status: 400 },
@@ -19,16 +23,18 @@ export async function POST(req: Request) {
 
     const { email, password } = parsed.data;
 
-    const admin = await prisma.user.findUnique({
+    const admin = await prisma.user.findFirst({
       where: { email: email.toLowerCase().trim(), role: "ADMIN" },
     });
 
     if (!admin) {
+      logger.warn("admin/auth/login", "Admin not found", { email });
       return NextResponse.json({ error: "Kredensial salah" }, { status: 401 });
     }
 
     const valid = await verifyPassword(password, admin.passwordHash);
     if (!valid) {
+      logger.warn("admin/auth/login", "Invalid password", { email });
       return NextResponse.json({ error: "Kredensial salah" }, { status: 401 });
     }
 
@@ -36,8 +42,13 @@ export async function POST(req: Request) {
     const cookieStore = await cookies();
     cookieStore.set(setAdminCookie(token));
 
+    logger.info("admin/auth/login", "Admin login success", { email });
     return NextResponse.json({ success: true });
-  } catch {
+  } catch (err) {
+    logger.error("admin/auth/login", "Login error", {
+      message: err instanceof Error ? err.message : String(err),
+      stack: err instanceof Error ? err.stack : undefined,
+    });
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

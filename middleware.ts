@@ -28,33 +28,33 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Member protected routes
-  if (pathname.startsWith("/dashboard")) {
+  if (
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/profile") ||
+    pathname.startsWith("/support")
+  ) {
     const token = request.cookies.get("member-token")?.value;
     if (!token || !(await isValidToken(token))) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
   }
 
-  // Admin protected routes (except admin-login)
-  if (pathname.startsWith("/admin") && !pathname.startsWith("/admin-login")) {
+  // Admin protected routes
+  if (pathname.startsWith("/admin")) {
     const token = request.cookies.get("admin-token")?.value;
     if (!token || !(await isValidToken(token))) {
-      return NextResponse.redirect(new URL("/admin-login", request.url));
+      return NextResponse.redirect(new URL("/login", request.url));
     }
   }
 
-  // Redirect logged-in members away from auth pages
+  // Redirect logged-in users away from auth pages
   if (pathname === "/login" || pathname === "/register") {
-    const token = request.cookies.get("member-token")?.value;
-    if (token && (await isValidToken(token))) {
+    const memberToken = request.cookies.get("member-token")?.value;
+    if (memberToken && (await isValidToken(memberToken))) {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
-  }
-
-  // Redirect logged-in admins away from admin-login
-  if (pathname === "/admin-login") {
-    const token = request.cookies.get("admin-token")?.value;
-    if (token && (await isValidToken(token))) {
+    const adminToken = request.cookies.get("admin-token")?.value;
+    if (adminToken && (await isValidToken(adminToken))) {
       return NextResponse.redirect(new URL("/admin", request.url));
     }
   }
@@ -65,8 +65,9 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     "/dashboard/:path*",
+    "/profile/:path*",
+    "/support/:path*",
     "/admin/:path*",
-    "/admin-login",
     "/login",
     "/register",
   ],

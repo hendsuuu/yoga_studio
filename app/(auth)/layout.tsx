@@ -1,13 +1,18 @@
 import { redirect } from "next/navigation";
-import { getMemberSession } from "@/lib/auth/session";
+import { getMemberSession, getAdminSession } from "@/lib/auth/session";
 
 export default async function AuthLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getMemberSession();
-  if (session) {
+  const adminSession = await getAdminSession();
+  if (adminSession) {
+    redirect("/admin");
+  }
+
+  const memberSession = await getMemberSession();
+  if (memberSession) {
     redirect("/dashboard");
   }
 
