@@ -116,18 +116,6 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
         setDuration(audio.duration);
       });
 
-      audio.addEventListener("canplay", () => {
-        // Only play if this audio is still the current one
-        if (audioRef.current === audio) {
-          audio.play().then(() => {
-            setIsPlaying(true);
-            startProgressTracking();
-          }).catch(() => {
-            setIsPlaying(false);
-          });
-        }
-      }, { once: true });
-
       audio.addEventListener("ended", () => {
         const mode = playModeRef.current;
         const allTracks = tracksRef.current;
@@ -163,10 +151,18 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
         stopProgressTracking();
       });
 
-      // Set source and begin loading — canplay handler will call play()
+      // Set source and play directly — keeps user gesture context for autoplay policy
       audio.preload = "auto";
       audio.src = track.url;
-      audio.load();
+      audio
+        .play()
+        .then(() => {
+          setIsPlaying(true);
+          startProgressTracking();
+        })
+        .catch(() => {
+          setIsPlaying(false);
+        });
     },
     [stopProgressTracking, startProgressTracking],
   );
@@ -179,10 +175,13 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
 
   const resume = useCallback(() => {
     if (audioRef.current) {
-      audioRef.current.play().then(() => {
-        setIsPlaying(true);
-        startProgressTracking();
-      }).catch(() => {});
+      audioRef.current
+        .play()
+        .then(() => {
+          setIsPlaying(true);
+          startProgressTracking();
+        })
+        .catch(() => {});
     }
   }, [startProgressTracking]);
 
@@ -271,7 +270,8 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
         setTracks,
         setPlayMode,
         cyclePlayMode,
-      }}>
+      }}
+    >
       {children}
     </AudioPlayerContext.Provider>
   );
