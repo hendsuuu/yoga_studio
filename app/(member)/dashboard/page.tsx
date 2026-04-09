@@ -53,25 +53,25 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-gray-50 relative">
       <MemberHeader member={member} />
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-28 space-y-6 overflow-y-auto no-scrollbar">
+      <main className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 pt-4 pb-24 space-y-4 overflow-y-auto no-scrollbar">
         {/* Membership info */}
         {member.membershipExpiresAt && (
-          <div className="flex gap-3">
-            <div className="flex-1 bg-rose-bg rounded-2xl p-4 border border-white flex items-center gap-3 shadow-sm">
-              <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-primary shadow-sm">
-                <Clock className="w-5 h-5" />
+          <div className="flex gap-2">
+            <div className="flex-1 bg-rose-bg rounded-xl p-3 border border-white flex items-center gap-2.5 shadow-sm">
+              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-primary shadow-sm">
+                <Clock className="w-4 h-4" />
               </div>
               <div>
-                <span className="text-xs font-bold text-primary uppercase opacity-60">
+                <span className="text-[10px] font-bold text-primary uppercase opacity-60">
                   Masa Aktif
                 </span>
-                <p className="text-sm font-bold text-secondary">
+                <p className="text-xs font-bold text-secondary">
                   {formatHumanDate(member.membershipExpiresAt)}
                 </p>
               </div>
             </div>
-            <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex items-center px-5">
-              <p className="text-sm font-bold text-primary whitespace-nowrap">
+            <div className="bg-white rounded-xl p-3 border border-gray-100 shadow-sm flex items-center px-4">
+              <p className="text-xs font-bold text-primary whitespace-nowrap">
                 {daysUntil(member.membershipExpiresAt)} HARI
               </p>
             </div>
@@ -84,19 +84,19 @@ export default function DashboardPage() {
         ))}
 
         {/* Tab Content */}
-        <div className="space-y-5 animate-in">
+        <div className="space-y-4 animate-in">
           {activeTab === "schedule" && (
             <>
               {schedulesLoading ? (
                 <Loader message="Memuat jadwal..." />
               ) : (schedules || []).length === 0 ? (
                 <EmptyState
-                  icon={<CalendarIcon className="w-12 h-12" />}
+                  icon={<CalendarIcon className="w-10 h-10" />}
                   title="Belum ada jadwal"
                   description="Jadwal kelas akan muncul di sini"
                 />
               ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                   {schedules!.map((s) => (
                     <ScheduleCard key={s.id} schedule={s} />
                   ))}
@@ -108,13 +108,13 @@ export default function DashboardPage() {
           {activeTab === "recordings" && (
             <div className="space-y-4">
               <div className="relative max-w-6xl mx-auto">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-300" />
                 <input
                   type="text"
                   placeholder="Cari rekaman..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-white border border-gray-200 rounded-xl py-3 pl-11 pr-4 text-sm outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/10 transition-all"
+                  className="w-full bg-white border border-gray-200 rounded-lg py-2.5 pl-9 pr-3 text-xs outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/10 transition-all"
                 />
               </div>
               {recordingsLoading ? (

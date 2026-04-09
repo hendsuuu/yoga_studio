@@ -86,7 +86,8 @@ export function TabRelax() {
                 category === c.key
                   ? "bg-primary text-white shadow-sm"
                   : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-              }`}>
+              }`}
+            >
               {c.label}
             </button>
           ))}
@@ -104,7 +105,8 @@ export function TabRelax() {
               : playMode === "shuffle"
                 ? "Acak"
                 : "Ulang 1"
-          }>
+          }
+        >
           {playMode === "shuffle" ? (
             <Shuffle className="w-4 h-4" />
           ) : playMode === "loop-one" ? (
@@ -117,7 +119,7 @@ export function TabRelax() {
 
       {filtered.length === 0 ? (
         <EmptyState
-          icon={<Music className="w-10 h-10" />}
+          icon={<Music className="w-8 h-8" />}
           title="Tidak ada musik"
           description="Musik akan ditambahkan segera"
         />
@@ -131,31 +133,34 @@ export function TabRelax() {
               <button
                 key={track.id}
                 onClick={() => handlePlay(track)}
-                className={`w-full flex items-center gap-3 p-3 rounded-2xl border transition-all text-left ${
+                className={`w-full flex items-center gap-2.5 p-2.5 rounded-xl border transition-all text-left ${
                   isCurrent
                     ? "bg-rose-bg border-primary/20 shadow-sm"
                     : "bg-white border-gray-100 hover:border-primary/10 hover:shadow-sm"
-                }`}>
+                }`}
+              >
                 <div
-                  className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
                     isCurrent
                       ? "bg-primary text-white"
                       : "bg-gray-50 text-gray-400"
-                  }`}>
+                  }`}
+                >
                   {isCurrentPlaying ? (
-                    <Pause className="w-4 h-4" />
+                    <Pause className="w-3.5 h-3.5" />
                   ) : (
-                    <Play className="w-4 h-4" />
+                    <Play className="w-3.5 h-3.5" />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p
-                    className={`text-sm font-semibold truncate ${
+                    className={`text-xs font-semibold truncate ${
                       isCurrent ? "text-primary" : "text-secondary"
-                    }`}>
+                    }`}
+                  >
                     {track.title}
                   </p>
-                  <p className="text-xs text-gray-400 font-medium">
+                  <p className="text-[11px] text-gray-400 font-medium">
                     {track.artist} &middot;{" "}
                     {isCurrent && isPlaying
                       ? `${formatTime(progress)} / ${formatTime(duration)}`

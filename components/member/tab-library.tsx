@@ -45,14 +45,14 @@ export function TabLibrary() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-5">
-      <div className="bg-gradient-to-br from-secondary to-secondary/80 text-white p-6 sm:p-8 rounded-2xl shadow-lg text-center">
-        <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center mx-auto mb-3 border border-white/20">
-          <BookOpen className="w-6 h-6 text-accent" />
+      <div className="bg-gradient-to-br from-secondary to-secondary/80 text-white p-5 sm:p-6 rounded-xl shadow-lg text-center">
+        <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center mx-auto mb-2.5 border border-white/20">
+          <BookOpen className="w-5 h-5 text-accent" />
         </div>
-        <h3 className="text-xl sm:text-2xl font-serif italic mb-1">
+        <h3 className="text-lg sm:text-xl font-serif italic mb-1">
           Yoga Library AI
         </h3>
-        <p className="text-xs text-accent font-bold uppercase tracking-widest mb-5 opacity-80">
+        <p className="text-xs text-accent font-bold uppercase tracking-widest mb-4 opacity-80">
           Pustakawan Ilmu Yoga
         </p>
         <div className="relative mb-4">
@@ -62,13 +62,14 @@ export function TabLibrary() {
             placeholder="Tanya tentang yoga..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full bg-white/10 border border-white/20 rounded-xl py-3.5 pl-11 pr-4 text-sm outline-none focus:border-accent placeholder:text-white/30 text-left transition-all"
+            className="w-full bg-white/10 border border-white/20 rounded-xl py-3 pl-11 pr-4 text-sm outline-none focus:border-accent placeholder:text-white/30 text-left transition-all"
           />
         </div>
         <button
           onClick={generate}
           disabled={!query || loading}
-          className="w-full py-3.5 bg-accent text-white rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg flex items-center justify-center gap-2 hover:bg-accent/90 active:scale-[0.98] disabled:opacity-50 transition-all">
+          className="w-full py-3 bg-accent text-white rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg flex items-center justify-center gap-2 hover:bg-accent/90 active:scale-[0.98] disabled:opacity-50 transition-all"
+        >
           {loading ? (
             <RefreshCw className="w-4 h-4 animate-spin" />
           ) : (
@@ -81,10 +82,10 @@ export function TabLibrary() {
       {loading && <Loader message="Mencari lembar ilmu..." />}
 
       {result && !loading && (
-        <div className="bg-white rounded-2xl border-l-4 border-l-primary border border-gray-100 shadow-lg overflow-hidden animate-in fade-in">
-          <div className="p-6 space-y-5">
-            <div className="flex items-center gap-3 pb-3 border-b border-gray-100">
-              <div className="w-9 h-9 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
+        <div className="bg-white rounded-xl border-l-4 border-l-primary border border-gray-100 shadow-lg overflow-hidden animate-in fade-in">
+          <div className="p-5 space-y-4">
+            <div className="flex items-center gap-2.5 pb-2.5 border-b border-gray-100">
+              <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
                 <Sparkles className="w-4 h-4" />
               </div>
               <span className="text-xs font-bold text-primary uppercase tracking-widest">
@@ -98,7 +99,8 @@ export function TabLibrary() {
           <div className="flex p-3 gap-2 bg-gray-50/50 border-t border-gray-100">
             <button
               onClick={copyResult}
-              className="flex-1 py-3 bg-white text-primary rounded-xl font-bold text-xs uppercase tracking-widest shadow-sm hover:bg-rose-bg active:scale-[0.98] transition-all">
+              className="flex-1 py-3 bg-white text-primary rounded-xl font-bold text-xs uppercase tracking-widest shadow-sm hover:bg-rose-bg active:scale-[0.98] transition-all"
+            >
               <ClipboardCheck className="w-3.5 h-3.5 inline mr-1.5" />
               Salin
             </button>
@@ -107,7 +109,8 @@ export function TabLibrary() {
                 setResult(null);
                 setQuery("");
               }}
-              className="flex-1 py-3 bg-primary text-white rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg hover:bg-primary/90 active:scale-[0.98] transition-all">
+              className="flex-1 py-3 bg-primary text-white rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg hover:bg-primary/90 active:scale-[0.98] transition-all"
+            >
               Tanya Lagi
             </button>
           </div>

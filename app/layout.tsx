@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, Playfair_Display } from "next/font/google";
 import { Providers } from "@/providers/query-provider";
 import "./globals.css";
@@ -12,6 +12,13 @@ const playfair = Playfair_Display({
   subsets: ["latin"],
   variable: "--font-playfair",
 });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
 
 export const metadata: Metadata = {
   title: "Virtual Studio - Premium Yoga Experience",
@@ -27,7 +34,8 @@ export default function RootLayout({
   return (
     <html lang="id">
       <body
-        className={`${jakarta.variable} ${playfair.variable} font-sans antialiased`}>
+        className={`${jakarta.variable} ${playfair.variable} font-sans antialiased`}
+      >
         <Providers>{children}</Providers>
       </body>
     </html>

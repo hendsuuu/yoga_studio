@@ -66,15 +66,15 @@ export function FloatingPlayer() {
 
       {/* Mini player */}
       <div className="bg-white/95 backdrop-blur-xl border-b border-gray-100 shadow-lg">
-        <div className="max-w-6xl mx-auto px-4 py-2 flex items-center gap-3">
+        <div className="max-w-6xl mx-auto px-2 sm:px-4 py-2 flex items-center gap-2 sm:gap-3">
           {/* Track icon */}
-          <div className="w-10 h-10 rounded-xl bg-rose-bg flex items-center justify-center text-primary shrink-0">
-            <Music className="w-5 h-5" />
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-rose-bg flex items-center justify-center text-primary shrink-0">
+            <Music className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
 
           {/* Track info + time */}
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-secondary truncate">
+            <p className="text-xs sm:text-sm font-semibold text-secondary truncate">
               {currentTrack.title}
             </p>
             <p className="text-[10px] text-gray-400 font-medium truncate">
@@ -84,25 +84,28 @@ export function FloatingPlayer() {
           </div>
 
           {/* Controls */}
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0.5 sm:gap-1">
             <button
               onClick={cyclePlayMode}
               title={modeLabel}
-              className={`p-2 rounded-lg transition-all ${
+              className={`hidden sm:block p-2 rounded-lg transition-all ${
                 playMode !== "sequential"
                   ? "text-primary bg-rose-bg"
                   : "text-gray-400 hover:text-primary hover:bg-rose-bg"
-              }`}>
+              }`}
+            >
               <ModeIcon className="w-4 h-4" />
             </button>
             <button
               onClick={previous}
-              className="p-2 rounded-lg text-gray-400 hover:text-primary hover:bg-rose-bg transition-all">
+              className="p-1.5 sm:p-2 rounded-lg text-gray-400 hover:text-primary hover:bg-rose-bg transition-all"
+            >
               <SkipBack className="w-4 h-4" />
             </button>
             <button
               onClick={isPlaying ? pause : resume}
-              className="p-2.5 rounded-xl bg-primary text-white hover:bg-primary/90 transition-all shadow-sm">
+              className="p-2 sm:p-2.5 rounded-xl bg-primary text-white hover:bg-primary/90 transition-all shadow-sm"
+            >
               {isPlaying ? (
                 <Pause className="w-4 h-4" />
               ) : (
@@ -111,12 +114,14 @@ export function FloatingPlayer() {
             </button>
             <button
               onClick={next}
-              className="p-2 rounded-lg text-gray-400 hover:text-primary hover:bg-rose-bg transition-all">
+              className="p-1.5 sm:p-2 rounded-lg text-gray-400 hover:text-primary hover:bg-rose-bg transition-all"
+            >
               <SkipForward className="w-4 h-4" />
             </button>
             <button
               onClick={() => setExpanded(!expanded)}
-              className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all ml-1">
+              className="hidden sm:block p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all ml-1"
+            >
               {expanded ? (
                 <ChevronUp className="w-4 h-4" />
               ) : (
@@ -125,7 +130,8 @@ export function FloatingPlayer() {
             </button>
             <button
               onClick={stop}
-              className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all">
+              className="p-1.5 sm:p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all"
+            >
               <X className="w-4 h-4" />
             </button>
           </div>

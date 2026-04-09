@@ -48,17 +48,17 @@ export function MemberHeader({ member }: HeaderProps) {
   return (
     <>
       <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-gray-100">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 h-12 sm:h-14 flex items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-sm">
-              <Flower2 className="w-5 h-5 text-white" />
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-sm">
+              <Flower2 className="w-4 h-4 text-white" />
             </div>
             <div>
-              <h2 className="text-base sm:text-lg font-serif italic text-secondary leading-none mb-0.5">
+              <h2 className="text-sm sm:text-base font-serif italic text-secondary leading-none mb-0.5">
                 Virtual Studio
               </h2>
-              <p className="text-[10px] sm:text-xs font-bold text-primary/60 uppercase tracking-wider leading-none">
+              <p className="text-[9px] sm:text-[10px] font-bold text-primary/60 uppercase tracking-wider leading-none">
                 Yoga & Wellness
               </p>
             </div>
@@ -68,70 +68,72 @@ export function MemberHeader({ member }: HeaderProps) {
           <div className="relative" ref={popoverRef}>
             <button
               onClick={() => setShowProfile(!showProfile)}
-              className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-gray-50 transition-all">
+              className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-50 transition-all"
+            >
               <div className="hidden sm:block text-right">
-                <p className="text-sm font-semibold text-secondary leading-none">
+                <p className="text-xs font-semibold text-secondary leading-none">
                   {member.fullName}
                 </p>
-                <p className="text-[10px] text-gray-400 font-medium mt-0.5 leading-none">
+                <p className="text-[9px] text-gray-400 font-medium mt-0.5 leading-none">
                   Member
                 </p>
               </div>
-              <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                <User className="w-4 h-4" />
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                <User className="w-3.5 h-3.5" />
               </div>
             </button>
 
             {/* Profile Popover */}
             {showProfile && (
-              <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden animate-in fade-in zoom-in-95 z-[100]">
-                <div className="bg-gradient-to-br from-primary/5 to-accent/5 p-5">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                      <User className="w-6 h-6" />
+              <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden animate-in fade-in zoom-in-95 z-[100]">
+                <div className="bg-gradient-to-br from-primary/5 to-accent/5 p-4">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                      <User className="w-5 h-5" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-secondary truncate">
+                      <p className="text-xs font-semibold text-secondary truncate">
                         {member.fullName}
                       </p>
-                      <p className="text-xs text-gray-400 truncate">
+                      <p className="text-[11px] text-gray-400 truncate">
                         {member.email}
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="p-3 space-y-1">
+                <div className="p-2.5 space-y-0.5">
                   {member.membershipExpiresAt && (
-                    <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gray-50">
-                      <Clock className="w-4 h-4 text-primary shrink-0" />
+                    <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg bg-gray-50">
+                      <Clock className="w-3.5 h-3.5 text-primary shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs text-gray-500">Masa Aktif</p>
-                        <p className="text-xs font-semibold text-secondary">
+                        <p className="text-[11px] text-gray-500">Masa Aktif</p>
+                        <p className="text-[11px] font-semibold text-secondary">
                           {formatHumanDate(member.membershipExpiresAt)}
                         </p>
                       </div>
                       <span
-                        className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                        className={`text-[11px] font-bold px-1.5 py-0.5 rounded-full ${
                           remainingDays !== null && remainingDays <= 7
                             ? "bg-red-50 text-red-500"
                             : "bg-primary/10 text-primary"
-                        }`}>
+                        }`}
+                      >
                         {remainingDays} hari
                       </span>
                     </div>
                   )}
 
                   {member.phone && (
-                    <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl">
-                      <Shield className="w-4 h-4 text-gray-400 shrink-0" />
-                      <span className="text-xs text-gray-500">
+                    <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg">
+                      <Shield className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                      <span className="text-[11px] text-gray-500">
                         {member.phone}
                       </span>
                     </div>
                   )}
 
-                  <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl">
+                  <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg">
                     <div
                       className={`w-2 h-2 rounded-full ${member.isActive ? "bg-emerald-400" : "bg-red-400"}`}
                     />
@@ -144,33 +146,36 @@ export function MemberHeader({ member }: HeaderProps) {
                   </div>
                 </div>
 
-                <div className="border-t border-gray-100 p-3 space-y-1">
+                <div className="border-t border-gray-100 p-2.5 space-y-0.5">
                   <button
                     onClick={() => {
                       setShowProfile(false);
                       router.push("/profile");
                     }}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 transition-all">
-                    <User className="w-4 h-4" />
-                    <span className="text-sm font-medium">Profil Saya</span>
+                    className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-gray-600 hover:bg-gray-50 transition-all"
+                  >
+                    <User className="w-3.5 h-3.5" />
+                    <span className="text-xs font-medium">Profil Saya</span>
                   </button>
                   <button
                     onClick={() => {
                       setShowProfile(false);
                       router.push("/support");
                     }}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 transition-all">
-                    <Headset className="w-4 h-4" />
-                    <span className="text-sm font-medium">Support</span>
+                    className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-gray-600 hover:bg-gray-50 transition-all"
+                  >
+                    <Headset className="w-3.5 h-3.5" />
+                    <span className="text-xs font-medium">Support</span>
                   </button>
                   <button
                     onClick={() => {
                       setShowProfile(false);
                       setShowLogoutConfirm(true);
                     }}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-red-500 hover:bg-red-50 transition-all">
-                    <LogOut className="w-4 h-4" />
-                    <span className="text-sm font-medium">Keluar</span>
+                    className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-red-500 hover:bg-red-50 transition-all"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                    <span className="text-xs font-medium">Keluar</span>
                   </button>
                 </div>
               </div>
@@ -193,13 +198,15 @@ export function MemberHeader({ member }: HeaderProps) {
               <button
                 onClick={() => setShowLogoutConfirm(false)}
                 disabled={loading}
-                className="px-4 py-2 rounded-xl text-sm font-medium text-gray-500 border border-gray-200 hover:bg-gray-50 transition-all">
+                className="px-4 py-2 rounded-xl text-sm font-medium text-gray-500 border border-gray-200 hover:bg-gray-50 transition-all"
+              >
                 Batal
               </button>
               <button
                 onClick={handleLogout}
                 disabled={loading}
-                className="px-4 py-2 rounded-xl text-sm font-medium text-white bg-red-500 hover:bg-red-600 transition-all disabled:opacity-50">
+                className="px-4 py-2 rounded-xl text-sm font-medium text-white bg-red-500 hover:bg-red-600 transition-all disabled:opacity-50"
+              >
                 {loading ? "Keluar..." : "Ya, Logout"}
               </button>
             </div>
