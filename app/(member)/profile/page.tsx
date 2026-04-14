@@ -26,11 +26,12 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-gray-50">
       <MemberHeader member={member} />
 
-      <main className="max-w-lg mx-auto px-4 sm:px-6 pt-6 pb-10 space-y-6">
+      <main className="max-w-lg mx-auto px-4 sm:px-6 pt-5 pb-8 space-y-5">
         {member.isActive && (
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-secondary transition-colors">
+            className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-secondary transition-colors"
+          >
             <ArrowLeft className="w-4 h-4" />
             Kembali ke Dashboard
           </Link>
@@ -38,7 +39,7 @@ export default function ProfilePage() {
 
         {/* Inactive banner */}
         {isExpired && (
-          <div className="bg-red-50 border border-red-200 rounded-2xl p-4 text-center space-y-1">
+          <div className="bg-red-50 border border-red-200 rounded-xl p-3.5 text-center space-y-1">
             <p className="text-sm font-semibold text-red-600">
               Langganan Anda tidak aktif
             </p>
@@ -49,13 +50,13 @@ export default function ProfilePage() {
         )}
 
         {/* Profile Card */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="bg-gradient-to-br from-primary/5 to-accent/5 p-6 flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-              <User className="w-8 h-8" />
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="bg-gradient-to-br from-primary/5 to-accent/5 p-5 flex items-center gap-3.5">
+            <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+              <User className="w-7 h-7" />
             </div>
             <div className="min-w-0 flex-1">
-              <h1 className="text-lg font-semibold text-secondary truncate">
+              <h1 className="text-base font-semibold text-secondary truncate">
                 {member.fullName}
               </h1>
               <span
@@ -63,7 +64,8 @@ export default function ProfilePage() {
                   member.isActive
                     ? "bg-emerald-50 text-emerald-600"
                     : "bg-red-50 text-red-500"
-                }`}>
+                }`}
+              >
                 <div
                   className={`w-1.5 h-1.5 rounded-full ${member.isActive ? "bg-emerald-400" : "bg-red-400"}`}
                 />
@@ -72,7 +74,7 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <div className="p-5 space-y-4">
+          <div className="p-4 space-y-3.5">
             <div className="flex items-center gap-3">
               <Mail className="w-4 h-4 text-gray-400 shrink-0" />
               <div>
@@ -97,7 +99,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Subscription Card */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 space-y-3.5">
           <h2 className="text-sm font-bold text-secondary uppercase tracking-wider flex items-center gap-2">
             <Shield className="w-4 h-4 text-primary" />
             Status Langganan
@@ -124,7 +126,8 @@ export default function ProfilePage() {
                       : remainingDays !== null && remainingDays <= 14
                         ? "bg-amber-50 text-amber-500"
                         : "bg-primary/10 text-primary"
-                  }`}>
+                  }`}
+                >
                   {remainingDays !== null && remainingDays > 0
                     ? `${remainingDays} hari`
                     : "Sudah habis"}
@@ -153,7 +156,8 @@ export default function ProfilePage() {
         {isExpired && (
           <Link
             href="/support"
-            className="block w-full text-center bg-primary text-white font-semibold text-sm py-3 rounded-xl hover:bg-primary/90 transition-all">
+            className="block w-full text-center bg-primary text-white font-semibold text-sm py-3 rounded-xl hover:bg-primary/90 transition-all"
+          >
             Hubungi Admin
           </Link>
         )}

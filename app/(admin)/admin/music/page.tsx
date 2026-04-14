@@ -82,7 +82,7 @@ export default function AdminMusicPage() {
       const audio = new Audio();
       audio.preload = "metadata";
       audio.onloadedmetadata = () => {
-        const secs = Math.round(audio.duration);
+        const secs = Math.floor(audio.duration);
         const m = Math.floor(secs / 60);
         const s = secs % 60;
         resolve(`${m}:${s.toString().padStart(2, "0")}`);
@@ -218,7 +218,8 @@ export default function AdminMusicPage() {
                 {filtered.map((t) => (
                   <tr
                     key={t.id}
-                    className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                    className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors"
+                  >
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-lg bg-rose-bg flex items-center justify-center text-primary shrink-0">
@@ -240,12 +241,14 @@ export default function AdminMusicPage() {
                       <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => openEdit(t)}
-                          className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-secondary">
+                          className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-secondary"
+                        >
                           <Edit3 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => setDeleting(t.id)}
-                          className="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500">
+                          className="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500"
+                        >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -262,7 +265,8 @@ export default function AdminMusicPage() {
       <FormModal
         open={showForm}
         title={editingId ? "Edit Music" : "Tambah Music"}
-        onClose={() => setShowForm(false)}>
+        onClose={() => setShowForm(false)}
+      >
         <div className="space-y-4">
           <Input
             label="Judul"
@@ -322,7 +326,8 @@ export default function AdminMusicPage() {
                   category: e.target.value as MusicTrack["category"],
                 })
               }
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-primary/50 transition-colors bg-white">
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-primary/50 transition-colors bg-white"
+            >
               {categories.map((c) => (
                 <option key={c.value} value={c.value}>
                   {c.label}
@@ -336,7 +341,8 @@ export default function AdminMusicPage() {
             </Button>
             <Button
               onClick={handleSubmit}
-              loading={createMusic.isPending || updateMusic.isPending}>
+              loading={createMusic.isPending || updateMusic.isPending}
+            >
               {editingId ? "Simpan" : "Tambah"}
             </Button>
           </div>

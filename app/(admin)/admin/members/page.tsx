@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Loader } from "@/components/ui/loader";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ConfirmDialog, FormModal } from "@/components/admin/dialogs";
-import { formatHumanDate, daysUntil } from "@/lib/utils";
+import { formatHumanDate, daysUntil, addDaysLocal } from "@/lib/utils";
 import type { AdminMember } from "@/types";
 
 const MEMBERSHIP_OPTIONS = [
@@ -105,10 +105,7 @@ export default function AdminMembersPage() {
         specialAccess: editSpecial,
       };
       if (editDays) {
-        const expiresAt = new Date(
-          Date.now() + Number(editDays) * 24 * 60 * 60 * 1000,
-        );
-        data.membershipExpiresAt = expiresAt.toISOString().split("T")[0];
+        data.membershipExpiresAt = addDaysLocal(new Date(), Number(editDays));
       }
       await updateMember.mutateAsync({
         id: editing.id,
@@ -197,7 +194,8 @@ export default function AdminMembersPage() {
                 {filtered.map((m) => (
                   <tr
                     key={m.id}
-                    className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                    className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors"
+                  >
                     <td className="px-4 py-3 font-medium text-secondary">
                       {m.fullName}
                     </td>
@@ -208,7 +206,8 @@ export default function AdminMembersPage() {
                           m.isActive
                             ? "bg-emerald-50 text-emerald-700"
                             : "bg-red-50 text-red-500"
-                        }`}>
+                        }`}
+                      >
                         {m.isActive ? (
                           <UserCheck className="w-3 h-3" />
                         ) : (
@@ -231,7 +230,8 @@ export default function AdminMembersPage() {
                               : daysUntil(m.membershipExpiresAt) <= 14
                                 ? "text-amber-500"
                                 : "text-emerald-600"
-                          }`}>
+                          }`}
+                        >
                           {daysUntil(m.membershipExpiresAt)} hari
                         </span>
                       ) : (
@@ -242,12 +242,14 @@ export default function AdminMembersPage() {
                       <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => openEdit(m)}
-                          className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-secondary">
+                          className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-secondary"
+                        >
                           <Edit3 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => setDeleting(m.id)}
-                          className="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500">
+                          className="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500"
+                        >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -264,7 +266,8 @@ export default function AdminMembersPage() {
       <FormModal
         open={creating}
         title="Tambah User Baru"
-        onClose={() => setCreating(false)}>
+        onClose={() => setCreating(false)}
+      >
         <div className="space-y-4">
           <Input
             label="Nama Lengkap"
@@ -299,7 +302,8 @@ export default function AdminMembersPage() {
             <select
               value={createDays}
               onChange={(e) => setCreateDays(e.target.value)}
-              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20">
+              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
+            >
               {MEMBERSHIP_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
@@ -322,7 +326,8 @@ export default function AdminMembersPage() {
       <FormModal
         open={!!editing}
         title="Edit Member"
-        onClose={() => setEditing(null)}>
+        onClose={() => setEditing(null)}
+      >
         <div className="space-y-4">
           <Input
             label="Nama"
@@ -346,7 +351,8 @@ export default function AdminMembersPage() {
             <select
               value={editDays}
               onChange={(e) => setEditDays(e.target.value)}
-              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20">
+              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
+            >
               <option value="">— Tidak diubah —</option>
               {MEMBERSHIP_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -363,7 +369,8 @@ export default function AdminMembersPage() {
               <select
                 value={editActive ? "true" : "false"}
                 onChange={(e) => setEditActive(e.target.value === "true")}
-                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20">
+                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
+              >
                 <option value="true">Aktif</option>
                 <option value="false">Nonaktif</option>
               </select>
@@ -375,7 +382,8 @@ export default function AdminMembersPage() {
               <select
                 value={editSpecial ? "true" : "false"}
                 onChange={(e) => setEditSpecial(e.target.value === "true")}
-                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20">
+                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
+              >
                 <option value="false">Tidak</option>
                 <option value="true">Ya</option>
               </select>

@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { format } from "date-fns";
+import { format, addDays, startOfDay } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 
 export function cn(...inputs: ClassValue[]) {
@@ -46,6 +46,11 @@ export function daysUntil(date: Date | string): number {
   const d = typeof date === "string" ? new Date(date) : date;
   const diff = d.getTime() - Date.now();
   return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+}
+
+export function addDaysLocal(from: Date, days: number): string {
+  const result = addDays(startOfDay(from), days);
+  return format(result, "yyyy-MM-dd");
 }
 
 export function cleanAIText(text: string): string {

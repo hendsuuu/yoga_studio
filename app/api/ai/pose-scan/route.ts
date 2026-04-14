@@ -53,10 +53,9 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ text });
-  } catch {
-    return NextResponse.json(
-      { error: "AI service unavailable" },
-      { status: 503 },
-    );
+  } catch (err) {
+    const message =
+      err instanceof Error ? err.message : "AI service unavailable";
+    return NextResponse.json({ error: message }, { status: 503 });
   }
 }

@@ -37,19 +37,20 @@ export default function SupportPage() {
     <div className="min-h-screen bg-gray-50">
       <MemberHeader member={member} />
 
-      <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-28 space-y-6">
+      <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-24 space-y-5">
         <button
           onClick={() => router.push("/dashboard")}
-          className="flex items-center gap-2 text-sm text-gray-400 hover:text-secondary transition-all">
+          className="flex items-center gap-2 text-sm text-gray-400 hover:text-secondary transition-all"
+        >
           <ArrowLeft className="w-4 h-4" />
           Kembali ke Dashboard
         </button>
 
-        <div className="text-center space-y-2">
-          <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto">
-            <Headset className="w-8 h-8 text-primary" />
+        <div className="text-center space-y-1.5">
+          <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center mx-auto">
+            <Headset className="w-7 h-7 text-primary" />
           </div>
-          <h1 className="text-2xl font-serif italic text-secondary">Support</h1>
+          <h1 className="text-xl font-serif italic text-secondary">Support</h1>
           <p className="text-sm text-gray-400">
             Hubungi kami jika ada pertanyaan atau kendala
           </p>
@@ -64,9 +65,10 @@ export default function SupportPage() {
                 href={`https://wa.me/${waNumber}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-4 p-5 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-primary/20 transition-all group">
-                <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 shrink-0">
-                  <MessageCircle className="w-6 h-6" />
+                className="flex items-center gap-3.5 p-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-primary/20 transition-all group"
+              >
+                <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-600 shrink-0">
+                  <MessageCircle className="w-5 h-5" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-secondary">
@@ -86,9 +88,10 @@ export default function SupportPage() {
             {email && (
               <a
                 href={`mailto:${email}`}
-                className="flex items-center gap-4 p-5 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-primary/20 transition-all group">
-                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary shrink-0">
-                  <Mail className="w-6 h-6" />
+                className="flex items-center gap-3.5 p-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-primary/20 transition-all group"
+              >
+                <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary shrink-0">
+                  <Mail className="w-5 h-5" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-secondary">Email</p>

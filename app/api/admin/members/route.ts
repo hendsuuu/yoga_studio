@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { getAdminSession } from "@/lib/auth/session";
 import { hashPassword } from "@/lib/auth/password";
+import { addDays, startOfDay } from "date-fns";
 
 export async function GET() {
   const session = await getAdminSession();
@@ -52,7 +53,7 @@ export async function POST(req: NextRequest) {
 
   const hashedPassword = await hashPassword(password);
   const membershipExpiresAt = membershipDays
-    ? new Date(Date.now() + Number(membershipDays) * 24 * 60 * 60 * 1000)
+    ? addDays(startOfDay(new Date()), Number(membershipDays))
     : null;
 
   const member = await prisma.user.create({

@@ -4,13 +4,16 @@ interface AiRequest {
   imageData?: string;
 }
 
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+
 export async function generateAiContent({
   prompt,
   systemInstruction,
   imageData,
 }: AiRequest): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new Error("GEMINI_API_KEY is not configured");
+  if (!apiKey || apiKey === "your-gemini-api-key")
+    throw new Error("GEMINI_API_KEY is not configured");
 
   const parts: Record<string, unknown>[] = [{ text: prompt }];
   if (imageData) {
@@ -20,7 +23,7 @@ export async function generateAiContent({
   }
 
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -32,9 +35,19 @@ export async function generateAiContent({
   );
 
   if (!res.ok) {
+    const errorBody = await res.text().catch(() => "");
+    console.error(`Gemini API error ${res.status}: ${errorBody}`);
     throw new Error(`AI API error: ${res.status}`);
   }
 
   const json = await res.json();
-  return json.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) {
+    console.error(
+      "Gemini returned no text:",
+      JSON.stringify(json).slice(0, 500),
+    );
+    throw new Error("AI returned empty response");
+  }
+  return text;
 }

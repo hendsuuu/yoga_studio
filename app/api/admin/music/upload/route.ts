@@ -4,6 +4,9 @@ import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { randomUUID } from "crypto";
 
+const AUDIO_DIR =
+  process.env.AUDIO_DIR || path.join(process.cwd(), "public", "audio");
+
 export async function POST(req: Request) {
   const session = await getAdminSession();
   if (!session)
@@ -35,12 +38,11 @@ export async function POST(req: Request) {
 
   const ext = path.extname(file.name) || ".mp3";
   const safeName = `${randomUUID()}${ext}`;
-  const uploadDir = path.join(process.cwd(), "public", "audio");
 
-  await mkdir(uploadDir, { recursive: true });
+  await mkdir(AUDIO_DIR, { recursive: true });
 
   const buffer = Buffer.from(await file.arrayBuffer());
-  await writeFile(path.join(uploadDir, safeName), buffer);
+  await writeFile(path.join(AUDIO_DIR, safeName), buffer);
 
-  return NextResponse.json({ url: `/audio/${safeName}` });
+  return NextResponse.json({ url: `/api/audio/${safeName}` });
 }
