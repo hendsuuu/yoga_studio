@@ -18,10 +18,37 @@ export async function POST(req: Request) {
     }
 
     const text = await generateAiContent({
-      prompt:
-        "Analisis alignment pose yoga dalam 3 bagian. PENTING: Gunakan nama pose Inggris standar. Dilarang menggunakan istilah 'Pose Mayat'.",
-      systemInstruction:
-        "Berikan analisis teknis alignment yoga profesional Bahasa Indonesia.",
+      prompt: `
+      Analisis pose yoga dari gambar ini.
+
+      Tugas:
+      - Identifikasi pose yang paling mungkin.
+      - Berikan analisis alignment dalam tepat 3 bagian.
+      - Fokus pada evaluasi visual dari pose pada gambar.
+      - Jika pose tidak sepenuhnya jelas, sebutkan "kemungkinan pose".
+
+      Aturan:
+      - Gunakan Bahasa Indonesia.
+      - Nama pose wajib dalam Bahasa Inggris standar.
+      - Jangan gunakan istilah "Pose Mayat"; gunakan "Savasana".
+      - Jawaban harus compact, jelas, dan profesional.
+      - Hindari penjelasan panjang, teori umum, atau pengantar.
+
+      Format output:
+      1. Pose: [nama pose]
+      2. Yang sudah baik: [1-2 kalimat singkat]
+      3. Yang perlu diperbaiki: [1-2 kalimat singkat]
+      4. Saran aman: [1 kalimat singkat]
+
+      Batas:
+      - Total maksimal 100-120 kata.
+      - Tiap bagian singkat dan langsung ke inti.
+      `,
+      systemInstruction: `
+      Anda adalah instruktur yoga profesional yang ahli dalam alignment.
+      Berikan analisis teknis yang ringkas, akurat, mudah dipahami, dan langsung praktis.
+      Jangan bertele-tele. Jangan mengulang isi. Jangan menambahkan disclaimer panjang.
+      `,
       imageData,
     });
 
