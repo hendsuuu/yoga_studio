@@ -18,8 +18,9 @@ export async function GET() {
       email: true,
       phone: true,
       role: true,
+      tier: true,
       isActive: true,
-      specialAccess: true,
+      aiDailyLimit: true,
       membershipExpiresAt: true,
       createdAt: true,
     },
@@ -34,7 +35,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
-  const { fullName, email, phone, password, membershipDays } = body;
+  const { fullName, email, phone, password, membershipDays, tier } = body;
 
   if (!fullName || !email || !password) {
     return NextResponse.json(
@@ -63,8 +64,9 @@ export async function POST(req: NextRequest) {
       phone: phone || null,
       passwordHash: hashedPassword,
       role: "MEMBER",
+      tier: tier === "PREMIUM" ? "PREMIUM" : "FREE",
       isActive: true,
-      specialAccess: false,
+      aiDailyLimit: tier === "PREMIUM" ? 10 : 6,
       membershipExpiresAt,
     },
     select: {
@@ -73,8 +75,9 @@ export async function POST(req: NextRequest) {
       email: true,
       phone: true,
       role: true,
+      tier: true,
       isActive: true,
-      specialAccess: true,
+      aiDailyLimit: true,
       membershipExpiresAt: true,
       createdAt: true,
     },

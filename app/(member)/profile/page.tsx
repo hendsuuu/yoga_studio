@@ -30,8 +30,7 @@ export default function ProfilePage() {
         {member.isActive && (
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-secondary transition-colors"
-          >
+            className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-secondary transition-colors">
             <ArrowLeft className="w-4 h-4" />
             Kembali ke Dashboard
           </Link>
@@ -64,8 +63,7 @@ export default function ProfilePage() {
                   member.isActive
                     ? "bg-emerald-50 text-emerald-600"
                     : "bg-red-50 text-red-500"
-                }`}
-              >
+                }`}>
                 <div
                   className={`w-1.5 h-1.5 rounded-full ${member.isActive ? "bg-emerald-400" : "bg-red-400"}`}
                 />
@@ -126,22 +124,12 @@ export default function ProfilePage() {
                       : remainingDays !== null && remainingDays <= 14
                         ? "bg-amber-50 text-amber-500"
                         : "bg-primary/10 text-primary"
-                  }`}
-                >
+                  }`}>
                   {remainingDays !== null && remainingDays > 0
                     ? `${remainingDays} hari`
                     : "Sudah habis"}
                 </span>
               </div>
-
-              {member.specialAccess && (
-                <div className="flex items-center gap-2 bg-primary/5 rounded-xl px-4 py-3">
-                  <Shield className="w-4 h-4 text-primary" />
-                  <span className="text-xs font-semibold text-primary">
-                    Akses Spesial Aktif
-                  </span>
-                </div>
-              )}
             </div>
           ) : (
             <div className="bg-gray-50 rounded-xl p-4 text-center">
@@ -156,8 +144,7 @@ export default function ProfilePage() {
         {isExpired && (
           <Link
             href="/support"
-            className="block w-full text-center bg-primary text-white font-semibold text-sm py-3 rounded-xl hover:bg-primary/90 transition-all"
-          >
+            className="block w-full text-center bg-primary text-white font-semibold text-sm py-3 rounded-xl hover:bg-primary/90 transition-all">
             Hubungi Admin
           </Link>
         )}

@@ -1,12 +1,24 @@
 import { NextResponse } from "next/server";
-import { generateAiContent } from "@/lib/api/ai-service";
+import { generateAiContent, AiServiceError } from "@/lib/api/ai-service";
 import { getMemberSession } from "@/lib/auth/session";
+import { checkAiLimit, logAiUsage } from "@/lib/api/ai-limit";
 
 export async function POST(req: Request) {
   try {
     const session = await getMemberSession();
     if (!session)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const { allowed, used, limit } = await checkAiLimit(session.id);
+    if (!allowed) {
+      return NextResponse.json(
+        {
+          error: `Batas AI harian tercapai (${used}/${limit}). Coba lagi besok.`,
+        },
+        { status: 429 },
+      );
+    }
+
     const { imageData } = await req.json();
     if (!imageData || typeof imageData !== "string") {
       return NextResponse.json({ error: "Image is required" }, { status: 400 });
@@ -52,10 +64,16 @@ export async function POST(req: Request) {
       imageData,
     });
 
+    await logAiUsage(session.id, "pose-scan");
     return NextResponse.json({ text });
   } catch (err) {
-    const message =
-      err instanceof Error ? err.message : "AI service unavailable";
-    return NextResponse.json({ error: message }, { status: 503 });
+    if (err instanceof AiServiceError) {
+      const status = err.code === "AI_RATE_LIMITED" ? 429 : 503;
+      return NextResponse.json({ error: err.userMessage }, { status });
+    }
+    return NextResponse.json(
+      { error: "Fitur AI sedang tidak tersedia. Silakan coba lagi nanti." },
+      { status: 503 },
+    );
   }
 }

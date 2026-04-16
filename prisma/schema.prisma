@@ -12,19 +12,27 @@ enum Role {
     MEMBER
 }
 
+enum Tier {
+    FREE
+    PREMIUM
+}
+
 model User {
-    id                  String       @id @default(cuid())
+    id                  String             @id @default(cuid())
     fullName            String
-    email               String       @unique
-    phone               String       @default("")
+    email               String             @unique
+    phone               String             @default("")
     passwordHash        String
-    role                Role         @default(MEMBER)
-    isActive            Boolean      @default(true)
-    specialAccess       Boolean      @default(false)
+    role                Role               @default(MEMBER)
+    tier                Tier               @default(FREE)
+    isActive            Boolean            @default(true)
+    aiDailyLimit        Int                @default(6)
     membershipExpiresAt DateTime?
-    createdAt           DateTime     @default(now())
-    updatedAt           DateTime     @updatedAt
+    createdAt           DateTime           @default(now())
+    updatedAt           DateTime           @updatedAt
     aiUsageLogs         AiUsageLog[]
+    pushSubscriptions   PushSubscription[]
+    scheduleReminders   ScheduleReminder[]
 
     @@map("users")
 }
@@ -45,7 +53,7 @@ model Coach {
 }
 
 model Schedule {
-    id          String   @id @default(cuid())
+    id          String             @id @default(cuid())
     title       String
     date        DateTime
     timeRange   String
@@ -56,9 +64,10 @@ model Schedule {
     meetingId   String?
     meetingPass String?
     zoomUrl     String?
-    isActive    Boolean  @default(true)
-    createdAt   DateTime @default(now())
-    updatedAt   DateTime @updatedAt
+    isActive    Boolean            @default(true)
+    createdAt   DateTime           @default(now())
+    updatedAt   DateTime           @updatedAt
+    reminders   ScheduleReminder[]
 
     @@map("schedules")
 }
@@ -122,4 +131,29 @@ model AiUsageLog {
     member    User     @relation(fields: [memberId], references: [id], onDelete: Cascade)
 
     @@map("ai_usage_logs")
+}
+
+model PushSubscription {
+    id        String   @id @default(cuid())
+    memberId  String
+    endpoint  String   @unique
+    p256dh    String
+    auth      String
+    createdAt DateTime @default(now())
+    member    User     @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+    @@map("push_subscriptions")
+}
+
+model ScheduleReminder {
+    id         String    @id @default(cuid())
+    memberId   String
+    scheduleId String
+    sentAt     DateTime?
+    createdAt  DateTime  @default(now())
+    member     User      @relation(fields: [memberId], references: [id], onDelete: Cascade)
+    schedule   Schedule  @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+    @@unique([memberId, scheduleId])
+    @@map("schedule_reminders")
 }

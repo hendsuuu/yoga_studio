@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Flower2, LogOut, User, Clock, Shield, Headset } from "lucide-react";
+import { LogOut, User, Clock, Shield, Headset } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { toast } from "sonner";
 import type { MemberSession } from "@/types";
 import { formatHumanDate, daysUntil } from "@/lib/utils";
@@ -51,9 +52,13 @@ export function MemberHeader({ member }: HeaderProps) {
         <div className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 h-12 sm:h-14 flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-sm">
-              <Flower2 className="w-4 h-4 text-white" />
-            </div>
+            <Image
+              src="/images/yoga.png"
+              alt="Virtual Studio"
+              width={32}
+              height={32}
+              className="rounded-lg shadow-sm"
+            />
             <div>
               <h2 className="text-sm sm:text-base font-serif italic text-secondary leading-none mb-0.5">
                 Virtual Studio
@@ -68,8 +73,7 @@ export function MemberHeader({ member }: HeaderProps) {
           <div className="relative" ref={popoverRef}>
             <button
               onClick={() => setShowProfile(!showProfile)}
-              className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-50 transition-all"
-            >
+              className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-50 transition-all">
               <div className="hidden sm:block text-right">
                 <p className="text-xs font-semibold text-secondary leading-none">
                   {member.fullName}
@@ -117,12 +121,24 @@ export function MemberHeader({ member }: HeaderProps) {
                           remainingDays !== null && remainingDays <= 7
                             ? "bg-red-50 text-red-500"
                             : "bg-primary/10 text-primary"
-                        }`}
-                      >
+                        }`}>
                         {remainingDays} hari
                       </span>
                     </div>
                   )}
+
+                  <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg bg-gray-50">
+                    <Shield className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                    <span className="text-[11px] text-gray-500">Tier:</span>
+                    <span
+                      className={`text-[11px] font-bold px-1.5 py-0.5 rounded-full ${
+                        member.tier === "PREMIUM"
+                          ? "bg-amber-50 text-amber-700"
+                          : "bg-gray-100 text-gray-500"
+                      }`}>
+                      {member.tier === "PREMIUM" ? "Premium" : "Free Trial"}
+                    </span>
+                  </div>
 
                   {member.phone && (
                     <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg">
@@ -152,8 +168,7 @@ export function MemberHeader({ member }: HeaderProps) {
                       setShowProfile(false);
                       router.push("/profile");
                     }}
-                    className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-gray-600 hover:bg-gray-50 transition-all"
-                  >
+                    className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-gray-600 hover:bg-gray-50 transition-all">
                     <User className="w-3.5 h-3.5" />
                     <span className="text-xs font-medium">Profil Saya</span>
                   </button>
@@ -162,8 +177,7 @@ export function MemberHeader({ member }: HeaderProps) {
                       setShowProfile(false);
                       router.push("/support");
                     }}
-                    className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-gray-600 hover:bg-gray-50 transition-all"
-                  >
+                    className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-gray-600 hover:bg-gray-50 transition-all">
                     <Headset className="w-3.5 h-3.5" />
                     <span className="text-xs font-medium">Support</span>
                   </button>
@@ -172,8 +186,7 @@ export function MemberHeader({ member }: HeaderProps) {
                       setShowProfile(false);
                       setShowLogoutConfirm(true);
                     }}
-                    className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-red-500 hover:bg-red-50 transition-all"
-                  >
+                    className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-red-500 hover:bg-red-50 transition-all">
                     <LogOut className="w-3.5 h-3.5" />
                     <span className="text-xs font-medium">Keluar</span>
                   </button>
@@ -198,15 +211,13 @@ export function MemberHeader({ member }: HeaderProps) {
               <button
                 onClick={() => setShowLogoutConfirm(false)}
                 disabled={loading}
-                className="px-4 py-2 rounded-xl text-sm font-medium text-gray-500 border border-gray-200 hover:bg-gray-50 transition-all"
-              >
+                className="px-4 py-2 rounded-xl text-sm font-medium text-gray-500 border border-gray-200 hover:bg-gray-50 transition-all">
                 Batal
               </button>
               <button
                 onClick={handleLogout}
                 disabled={loading}
-                className="px-4 py-2 rounded-xl text-sm font-medium text-white bg-red-500 hover:bg-red-600 transition-all disabled:opacity-50"
-              >
+                className="px-4 py-2 rounded-xl text-sm font-medium text-white bg-red-500 hover:bg-red-600 transition-all disabled:opacity-50">
                 {loading ? "Keluar..." : "Ya, Logout"}
               </button>
             </div>

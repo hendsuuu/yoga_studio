@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Layout } from "lucide-react";
+import Image from "next/image";
 import { LoginForm } from "@/components/auth/login-form";
 
 export const metadata = { title: "Login - Virtual Studio" };
@@ -8,9 +8,13 @@ export default function LoginPage() {
   return (
     <div className="w-full max-w-sm">
       <div className="text-center mb-8">
-        <div className="w-14 h-14 bg-primary rounded-2xl flex items-center justify-center shadow-lg mb-4 mx-auto border-2 border-white">
-          <Layout className="w-6 h-6 text-white" />
-        </div>
+        <Image
+          src="/images/yoga.png"
+          alt="Virtual Studio"
+          width={72}
+          height={72}
+          className="mx-auto mb-4 rounded-2xl shadow-lg border-2 border-white"
+        />
         <h1 className="text-2xl font-serif italic text-secondary">
           Virtual Studio
         </h1>

@@ -1,7 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Trash2, Edit3, Search, UserCheck, UserX, Plus } from "lucide-react";
+import {
+  Trash2,
+  Edit3,
+  Search,
+  UserCheck,
+  UserX,
+  Plus,
+  Zap,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -9,6 +17,7 @@ import {
   useCreateMember,
   useUpdateMember,
   useDeleteMember,
+  useBulkAiLimit,
 } from "@/hooks/use-admin-members";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,11 +38,14 @@ export default function AdminMembersPage() {
   const createMember = useCreateMember();
   const updateMember = useUpdateMember();
   const deleteMember = useDeleteMember();
+  const bulkAiLimit = useBulkAiLimit();
 
   const [search, setSearch] = useState("");
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<AdminMember | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [showBulkAi, setShowBulkAi] = useState(false);
+  const [bulkAiValue, setBulkAiValue] = useState("10");
 
   // Create form state
   const [createName, setCreateName] = useState("");
@@ -41,14 +53,16 @@ export default function AdminMembersPage() {
   const [createPhone, setCreatePhone] = useState("");
   const [createPassword, setCreatePassword] = useState("");
   const [createDays, setCreateDays] = useState("30");
+  const [createTier, setCreateTier] = useState<"FREE" | "PREMIUM">("FREE");
 
   // Edit form state
   const [editName, setEditName] = useState("");
   const [editEmail, setEditEmail] = useState("");
   const [editPhone, setEditPhone] = useState("");
   const [editActive, setEditActive] = useState(true);
-  const [editSpecial, setEditSpecial] = useState(false);
   const [editDays, setEditDays] = useState("");
+  const [editTier, setEditTier] = useState<"FREE" | "PREMIUM">("FREE");
+  const [editAiLimit, setEditAiLimit] = useState("");
 
   function resetCreateForm() {
     setCreateName("");
@@ -56,6 +70,7 @@ export default function AdminMembersPage() {
     setCreatePhone("");
     setCreatePassword("");
     setCreateDays("30");
+    setCreateTier("FREE");
   }
 
   function openCreate() {
@@ -69,8 +84,9 @@ export default function AdminMembersPage() {
     setEditEmail(m.email);
     setEditPhone(m.phone);
     setEditActive(m.isActive);
-    setEditSpecial(m.specialAccess);
     setEditDays("");
+    setEditTier(m.tier);
+    setEditAiLimit(String(m.aiDailyLimit));
   }
 
   async function handleCreate() {
@@ -85,6 +101,7 @@ export default function AdminMembersPage() {
         phone: createPhone,
         password: createPassword,
         membershipDays: createDays,
+        tier: createTier,
       });
       toast.success("Member berhasil ditambahkan");
       setCreating(false);
@@ -102,7 +119,8 @@ export default function AdminMembersPage() {
         email: editEmail,
         phone: editPhone,
         isActive: editActive,
-        specialAccess: editSpecial,
+        tier: editTier,
+        aiDailyLimit: Number(editAiLimit) || 6,
       };
       if (editDays) {
         data.membershipExpiresAt = addDaysLocal(new Date(), Number(editDays));
@@ -142,10 +160,16 @@ export default function AdminMembersPage() {
           <h1 className="text-2xl font-serif italic text-secondary">Members</h1>
           <p className="text-sm text-gray-400">Kelola data member</p>
         </div>
-        <Button onClick={openCreate}>
-          <Plus className="w-4 h-4 mr-2" />
-          Tambah User
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => setShowBulkAi(true)}>
+            <Zap className="w-4 h-4 mr-2 text-amber-500" />
+            Bulk AI
+          </Button>
+          <Button onClick={openCreate}>
+            <Plus className="w-4 h-4 mr-2" />
+            Tambah User
+          </Button>
+        </div>
       </div>
 
       <div className="mb-4">
@@ -177,6 +201,12 @@ export default function AdminMembersPage() {
                     Email
                   </th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase">
+                    Tier
+                  </th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase">
+                    AI/Hari
+                  </th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase">
                     Status
                   </th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase">
@@ -194,20 +224,31 @@ export default function AdminMembersPage() {
                 {filtered.map((m) => (
                   <tr
                     key={m.id}
-                    className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors"
-                  >
+                    className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
                     <td className="px-4 py-3 font-medium text-secondary">
                       {m.fullName}
                     </td>
                     <td className="px-4 py-3 text-gray-500">{m.email}</td>
                     <td className="px-4 py-3">
                       <span
+                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                          m.tier === "PREMIUM"
+                            ? "bg-amber-50 text-amber-700"
+                            : "bg-gray-100 text-gray-500"
+                        }`}>
+                        {m.tier === "PREMIUM" ? "Premium" : "Free"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-xs text-gray-500 font-semibold">
+                      {m.aiDailyLimit}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
                         className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
                           m.isActive
                             ? "bg-emerald-50 text-emerald-700"
                             : "bg-red-50 text-red-500"
-                        }`}
-                      >
+                        }`}>
                         {m.isActive ? (
                           <UserCheck className="w-3 h-3" />
                         ) : (
@@ -230,8 +271,7 @@ export default function AdminMembersPage() {
                               : daysUntil(m.membershipExpiresAt) <= 14
                                 ? "text-amber-500"
                                 : "text-emerald-600"
-                          }`}
-                        >
+                          }`}>
                           {daysUntil(m.membershipExpiresAt)} hari
                         </span>
                       ) : (
@@ -242,14 +282,12 @@ export default function AdminMembersPage() {
                       <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => openEdit(m)}
-                          className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-secondary"
-                        >
+                          className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-secondary">
                           <Edit3 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => setDeleting(m.id)}
-                          className="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500"
-                        >
+                          className="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -266,8 +304,7 @@ export default function AdminMembersPage() {
       <FormModal
         open={creating}
         title="Tambah User Baru"
-        onClose={() => setCreating(false)}
-      >
+        onClose={() => setCreating(false)}>
         <div className="space-y-4">
           <Input
             label="Nama Lengkap"
@@ -302,13 +339,26 @@ export default function AdminMembersPage() {
             <select
               value={createDays}
               onChange={(e) => setCreateDays(e.target.value)}
-              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
-            >
+              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20">
               {MEMBERSHIP_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
                 </option>
               ))}
+            </select>
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Tier
+            </label>
+            <select
+              value={createTier}
+              onChange={(e) =>
+                setCreateTier(e.target.value as "FREE" | "PREMIUM")
+              }
+              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20">
+              <option value="FREE">Free Trial</option>
+              <option value="PREMIUM">Premium</option>
             </select>
           </div>
           <div className="flex gap-3 justify-end pt-2">
@@ -326,8 +376,7 @@ export default function AdminMembersPage() {
       <FormModal
         open={!!editing}
         title="Edit Member"
-        onClose={() => setEditing(null)}
-      >
+        onClose={() => setEditing(null)}>
         <div className="space-y-4">
           <Input
             label="Nama"
@@ -351,8 +400,7 @@ export default function AdminMembersPage() {
             <select
               value={editDays}
               onChange={(e) => setEditDays(e.target.value)}
-              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
-            >
+              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20">
               <option value="">— Tidak diubah —</option>
               {MEMBERSHIP_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -364,28 +412,42 @@ export default function AdminMembersPage() {
           <div className="flex gap-4">
             <div className="flex-1 space-y-1.5">
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                Tier
+              </label>
+              <select
+                value={editTier}
+                onChange={(e) =>
+                  setEditTier(e.target.value as "FREE" | "PREMIUM")
+                }
+                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20">
+                <option value="FREE">Free Trial</option>
+                <option value="PREMIUM">Premium</option>
+              </select>
+            </div>
+            <div className="flex-1 space-y-1.5">
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                AI Limit/Hari
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={editAiLimit}
+                onChange={(e) => setEditAiLimit(e.target.value)}
+                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
+              />
+            </div>
+          </div>
+          <div className="flex gap-4">
+            <div className="flex-1 space-y-1.5">
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 Status
               </label>
               <select
                 value={editActive ? "true" : "false"}
                 onChange={(e) => setEditActive(e.target.value === "true")}
-                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
-              >
+                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20">
                 <option value="true">Aktif</option>
                 <option value="false">Nonaktif</option>
-              </select>
-            </div>
-            <div className="flex-1 space-y-1.5">
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                Akses Spesial
-              </label>
-              <select
-                value={editSpecial ? "true" : "false"}
-                onChange={(e) => setEditSpecial(e.target.value === "true")}
-                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
-              >
-                <option value="false">Tidak</option>
-                <option value="true">Ya</option>
               </select>
             </div>
           </div>
@@ -409,6 +471,52 @@ export default function AdminMembersPage() {
         onConfirm={handleDelete}
         onCancel={() => setDeleting(null)}
       />
+
+      {/* Bulk AI Modal */}
+      <FormModal
+        open={showBulkAi}
+        title="Bulk AI Limit"
+        onClose={() => setShowBulkAi(false)}>
+        <div className="space-y-4">
+          <p className="text-sm text-gray-500">
+            Atur limit AI harian untuk <strong>seluruh user</strong> sekaligus.
+            Total member: <strong>{(members || []).length}</strong>
+          </p>
+          <Input
+            label="Jumlah AI Generate / Hari"
+            type="number"
+            value={bulkAiValue}
+            onChange={(e) => setBulkAiValue(e.target.value)}
+            placeholder="Masukkan jumlah"
+          />
+          <div className="flex gap-3 justify-end pt-2">
+            <Button variant="outline" onClick={() => setShowBulkAi(false)}>
+              Batal
+            </Button>
+            <Button
+              onClick={async () => {
+                const val = Number(bulkAiValue);
+                if (isNaN(val) || val < 0) {
+                  toast.error("Masukkan angka yang valid");
+                  return;
+                }
+                try {
+                  await bulkAiLimit.mutateAsync(val);
+                  toast.success(`AI limit diperbarui untuk semua user`);
+                  setShowBulkAi(false);
+                } catch (e: unknown) {
+                  toast.error(
+                    e instanceof Error ? e.message : "Gagal memperbarui",
+                  );
+                }
+              }}
+              loading={bulkAiLimit.isPending}>
+              <Zap className="w-4 h-4 mr-2" />
+              Terapkan
+            </Button>
+          </div>
+        </div>
+      </FormModal>
     </div>
   );
 }
