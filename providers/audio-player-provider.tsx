@@ -112,8 +112,20 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
       setProgress(0);
       setDuration(0);
 
+      // Cross-browser compatibility: preload metadata first (required by iOS Safari)
+      audio.preload = "metadata";
+      // Prevent iOS from requiring full download before playing
+      audio.setAttribute("playsinline", "true");
+
       audio.addEventListener("loadedmetadata", () => {
         setDuration(audio.duration);
+      });
+
+      // Fallback for duration on devices that don't fire loadedmetadata reliably
+      audio.addEventListener("durationchange", () => {
+        if (audio.duration && isFinite(audio.duration)) {
+          setDuration(audio.duration);
+        }
       });
 
       audio.addEventListener("ended", () => {
@@ -146,14 +158,25 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
         }
       });
 
+      // Retry once on network error before giving up
+      let retried = false;
       audio.addEventListener("error", () => {
+        if (!retried) {
+          retried = true;
+          audio.load();
+          audio.play().catch(() => {
+            setIsPlaying(false);
+            stopProgressTracking();
+          });
+          return;
+        }
         setIsPlaying(false);
         stopProgressTracking();
       });
 
-      // Set source and play directly — keeps user gesture context for autoplay policy
-      audio.preload = "auto";
+      // Set source and play — keeps user gesture context for autoplay policy
       audio.src = track.url;
+      audio.load();
       audio
         .play()
         .then(() => {
@@ -161,7 +184,15 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
           startProgressTracking();
         })
         .catch(() => {
-          setIsPlaying(false);
+          // Some browsers need a small delay after load
+          setTimeout(() => {
+            audio.play().then(() => {
+              setIsPlaying(true);
+              startProgressTracking();
+            }).catch(() => {
+              setIsPlaying(false);
+            });
+          }, 100);
         });
     },
     [stopProgressTracking, startProgressTracking],

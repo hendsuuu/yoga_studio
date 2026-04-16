@@ -241,8 +241,14 @@ export function ScheduleCard({ schedule }: Props) {
                 />
                 <div className="absolute bottom-full left-0 right-0 mb-1 bg-white rounded-lg shadow-lg border border-gray-100 z-30 overflow-hidden">
                   <button
-                    onClick={handleGoogleCalendar}
+                    onClick={handleICSDownload}
                     className="w-full px-3 py-2.5 text-left text-[11px] font-semibold text-gray-700 hover:bg-rose-bg/50 transition-colors flex items-center gap-2">
+                    <CalendarPlus className="w-4 h-4 text-primary" />
+                    Simpan ke Kalender HP
+                  </button>
+                  <button
+                    onClick={handleGoogleCalendar}
+                    className="w-full px-3 py-2.5 text-left text-[11px] font-semibold text-gray-700 hover:bg-rose-bg/50 transition-colors flex items-center gap-2 border-t border-gray-50">
                     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
                       <path
                         d="M18 3H6a3 3 0 00-3 3v12a3 3 0 003 3h12a3 3 0 003-3V6a3 3 0 00-3-3z"
@@ -271,14 +277,8 @@ export function ScheduleCard({ schedule }: Props) {
                         fill="#fff"
                       />
                     </svg>
-                    Google Calendar
+                    Google Calendar (Web)
                   </button>
-                  {/* <button
-                  onClick={handleICSDownload}
-                  className="w-full px-3 py-2.5 text-left text-[11px] font-semibold text-gray-700 hover:bg-rose-bg/50 transition-colors flex items-center gap-2 border-t border-gray-50">
-                  <CalendarPlus className="w-4 h-4 text-gray-500" />
-                  Kalender Lainnya (.ics)
-                </button> */}
                 </div>
               </>
             )}
