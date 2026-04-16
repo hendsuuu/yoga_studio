@@ -30,7 +30,7 @@ export function buildSchedulePayload(schedule: {
 }): PushPayload {
   return {
     title: `🧘 ${schedule.title}`,
-    body: `Kelas bersama ${schedule.coach} hari ini pukul ${schedule.timeRange}. Jangan sampai terlewat! 🙏`,
+    body: `Kelas bersama ${schedule.coach} hari ini pukul ${schedule.timeRange}. Jangan sampai terlewat!`,
     icon: "/images/yoga.png",
     badge: "/images/yoga.png",
     url: "/dashboard",

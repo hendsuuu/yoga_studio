@@ -252,7 +252,7 @@ export function ScheduleCard({ schedule }: Props) {
                     <CalendarPlus className="w-4 h-4 text-primary" />
                     Simpan ke Kalender HP
                   </button>
-                  <button
+                  {/* <button
                     onClick={handleGoogleCalendar}
                     className="w-full px-3 py-2.5 text-left text-[11px] font-semibold text-gray-700 hover:bg-rose-bg/50 transition-colors flex items-center gap-2 border-t border-gray-50"
                   >
@@ -285,7 +285,7 @@ export function ScheduleCard({ schedule }: Props) {
                       />
                     </svg>
                     Google Calendar (Web)
-                  </button>
+                  </button> */}
                 </div>
               </>
             )}

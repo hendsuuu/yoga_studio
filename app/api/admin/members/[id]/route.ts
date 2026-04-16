@@ -30,6 +30,11 @@ export async function PUT(
     data.membershipExpiresAt = new Date(data.membershipExpiresAt as string);
   }
 
+  // Sync aiDailyLimitMax when admin updates aiDailyLimit
+  if (typeof data.aiDailyLimit === "number") {
+    data.aiDailyLimitMax = data.aiDailyLimit;
+  }
+
   const updated = await prisma.user.update({
     where: { id, role: "MEMBER" },
     data,
