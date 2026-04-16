@@ -29,8 +29,7 @@ export function RecordingCard({ recording }: Props) {
         href={recording.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="p-2 bg-gray-50 rounded-lg text-primary hover:bg-rose-bg transition-colors"
-      >
+        className="p-2 bg-gray-50 rounded-lg text-primary hover:bg-rose-bg transition-colors">
         <ChevronRight className="w-3.5 h-3.5" />
       </a>
     </div>

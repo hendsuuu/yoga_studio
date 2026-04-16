@@ -35,7 +35,6 @@ async function main() {
       passwordHash: memberHash,
       role: "MEMBER" as const,
       isActive: true,
-      specialAccess: false,
       membershipExpiresAt: new Date("2026-12-31"),
     },
     {
@@ -45,7 +44,6 @@ async function main() {
       passwordHash: memberHash,
       role: "MEMBER" as const,
       isActive: true,
-      specialAccess: true,
       membershipExpiresAt: new Date("2027-06-30"),
     },
     {
@@ -55,7 +53,6 @@ async function main() {
       passwordHash: memberHash,
       role: "MEMBER" as const,
       isActive: true,
-      specialAccess: false,
       membershipExpiresAt: new Date("2026-06-15"),
     },
   ];

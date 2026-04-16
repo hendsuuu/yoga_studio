@@ -26,7 +26,7 @@ import { formatHumanDate, daysUntil } from "@/lib/utils";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<TabKey>("schedule");
+  const [activeTab, setActiveTab] = useState<TabKey | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
   const { data: member, isLoading: memberLoading } = useMemberSession();
@@ -40,11 +40,19 @@ export default function DashboardPage() {
     }
   }, [member, router]);
 
+  // Set default tab based on tier
+  useEffect(() => {
+    if (member && activeTab === null) {
+      setActiveTab(member.tier === "FREE" ? "relax" : "schedule");
+    }
+  }, [member, activeTab]);
+
   if (memberLoading)
     return <Loader fullScreen message="Menyiapkan Ruang Tenang..." />;
   if (!member || !member.isActive)
     return <Loader fullScreen message="Mengarahkan..." />;
 
+  const isFree = member.tier === "FREE";
   const filteredRecordings = (recordings || []).filter((r) =>
     r.title.toLowerCase().includes(searchQuery.toLowerCase()),
   );
@@ -147,7 +155,11 @@ export default function DashboardPage() {
       </main>
 
       <FloatingPlayer />
-      <NavBar active={activeTab} onChange={setActiveTab} />
+      <NavBar
+        active={activeTab || "relax"}
+        onChange={setActiveTab}
+        isFree={isFree}
+      />
     </div>
   );
 }

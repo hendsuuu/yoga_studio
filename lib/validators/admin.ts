@@ -40,7 +40,8 @@ export const memberUpdateSchema = z.object({
   email: z.string().email().optional(),
   phone: z.string().min(8).optional(),
   isActive: z.boolean().optional(),
-  specialAccess: z.boolean().optional(),
+  tier: z.enum(["FREE", "PREMIUM"]).optional(),
+  aiDailyLimit: z.number().int().min(0).optional(),
   membershipExpiresAt: z.string().optional(),
 });
 

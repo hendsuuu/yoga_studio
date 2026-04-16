@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 import { useState } from "react";
 import { useSidebar } from "./sidebar-context";
+import Image from "next/image";
 
 const links = [
   { href: "/admin", icon: LayoutDashboard, label: "Overview" },
@@ -68,13 +69,22 @@ export function AdminSidebar() {
             collapsed ? "p-3 justify-center" : "p-5 justify-between",
           )}>
           {!collapsed && (
-            <div>
-              <h1 className="text-lg font-serif italic text-secondary">
-                Admin Studio
-              </h1>
-              <p className="text-[10px] font-bold text-primary uppercase tracking-wider">
-                Dashboard
-              </p>
+            <div className="flex items-center gap-2.5">
+              <Image
+                src="/images/yoga.png"
+                alt="Admin"
+                width={32}
+                height={32}
+                className="rounded-lg"
+              />
+              <div>
+                <h1 className="text-lg font-serif italic text-secondary">
+                  Admin Studio
+                </h1>
+                <p className="text-[10px] font-bold text-primary uppercase tracking-wider">
+                  Dashboard
+                </p>
+              </div>
             </div>
           )}
           {collapsed && (

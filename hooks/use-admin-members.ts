@@ -55,3 +55,16 @@ export function useDeleteMember() {
     onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
   });
 }
+
+export function useBulkAiLimit() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (aiDailyLimit: number) =>
+      apiFetch("/api/admin/members/bulk-ai", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ aiDailyLimit }),
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+  });
+}

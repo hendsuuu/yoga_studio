@@ -1,12 +1,24 @@
 import { NextResponse } from "next/server";
 import { generateAiContent } from "@/lib/api/ai-service";
 import { getMemberSession } from "@/lib/auth/session";
+import { checkAiLimit, logAiUsage } from "@/lib/api/ai-limit";
 
 export async function POST(req: Request) {
   try {
     const session = await getMemberSession();
     if (!session)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const { allowed, used, limit } = await checkAiLimit(session.id);
+    if (!allowed) {
+      return NextResponse.json(
+        {
+          error: `Batas AI harian tercapai (${used}/${limit}). Coba lagi besok.`,
+        },
+        { status: 429 },
+      );
+    }
+
     const { mood } = await req.json();
     if (!mood || typeof mood !== "string") {
       return NextResponse.json({ error: "Mood is required" }, { status: 400 });
@@ -58,6 +70,7 @@ export async function POST(req: Request) {
       `,
     });
 
+    await logAiUsage(session.id, "meditation", mood);
     return NextResponse.json({ text });
   } catch (err) {
     const message =

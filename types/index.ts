@@ -1,4 +1,5 @@
 export type UserRole = "ADMIN" | "MEMBER";
+export type UserTier = "FREE" | "PREMIUM";
 
 export type MemberSession = {
   id: string;
@@ -6,7 +7,9 @@ export type MemberSession = {
   email: string;
   phone: string;
   isActive: boolean;
-  specialAccess: boolean;
+  tier: UserTier;
+  aiDailyLimit: number;
+  aiUsedToday: number;
   membershipExpiresAt: string | null;
 };
 
@@ -63,8 +66,9 @@ export type AdminMember = {
   email: string;
   phone: string;
   role: UserRole;
+  tier: UserTier;
   isActive: boolean;
-  specialAccess: boolean;
+  aiDailyLimit: number;
   membershipExpiresAt: string | null;
   createdAt: string;
 };

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getMemberSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/prisma";
+import { startOfDay, endOfDay } from "date-fns";
 
 export async function GET() {
   const session = await getMemberSession();
@@ -16,7 +17,8 @@ export async function GET() {
       email: true,
       phone: true,
       isActive: true,
-      specialAccess: true,
+      tier: true,
+      aiDailyLimit: true,
       membershipExpiresAt: true,
     },
   });
@@ -38,5 +40,14 @@ export async function GET() {
     member.isActive = false;
   }
 
-  return NextResponse.json(member);
+  // Count today's AI usage
+  const now = new Date();
+  const aiUsedToday = await prisma.aiUsageLog.count({
+    where: {
+      memberId: member.id,
+      createdAt: { gte: startOfDay(now), lte: endOfDay(now) },
+    },
+  });
+
+  return NextResponse.json({ ...member, aiUsedToday });
 }

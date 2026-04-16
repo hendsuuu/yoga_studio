@@ -1,12 +1,24 @@
 import { NextResponse } from "next/server";
 import { generateAiContent } from "@/lib/api/ai-service";
 import { getMemberSession } from "@/lib/auth/session";
+import { checkAiLimit, logAiUsage } from "@/lib/api/ai-limit";
 
 export async function POST(req: Request) {
   try {
     const session = await getMemberSession();
     if (!session)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const { allowed, used, limit } = await checkAiLimit(session.id);
+    if (!allowed) {
+      return NextResponse.json(
+        {
+          error: `Batas AI harian tercapai (${used}/${limit}). Coba lagi besok.`,
+        },
+        { status: 429 },
+      );
+    }
+
     const { duration, focus } = await req.json();
     if (!focus || typeof focus !== "string") {
       return NextResponse.json({ error: "Focus is required" }, { status: 400 });
@@ -14,8 +26,7 @@ export async function POST(req: Request) {
 
     const text = await generateAiContent({
       prompt: `Waktu: ${duration || "15"} menit, Fokus: ${focus}`,
-      systemInstruction:
-                 `Anda adalah AI Personal Trainer Yoga profesional.
+      systemInstruction: `Anda adalah AI Personal Trainer Yoga profesional.
                 Tugas:
                 Buatkan urutan gerakan yoga berdasarkan waktu dan fokus pengguna.
 
@@ -37,6 +48,7 @@ export async function POST(req: Request) {
                 `,
     });
 
+    await logAiUsage(session.id, "sequence", focus);
     return NextResponse.json({ text });
   } catch (err) {
     const message =
