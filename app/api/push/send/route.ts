@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
   let failed = 0;
 
   for (const schedule of schedules) {
-    const { start } = parseScheduleTimes(schedule.date, schedule.timeRange);
+    const { start } = parseScheduleTimes(schedule.date, schedule.timeRange, 7);
 
     // Check if class starts within the 25–35 min window
     if (start < reminderWindowStart || start > reminderWindowEnd) continue;

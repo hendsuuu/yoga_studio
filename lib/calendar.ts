@@ -3,10 +3,15 @@ import { format } from "date-fns";
 /**
  * Parse a schedule's date and timeRange into start/end Date objects.
  * timeRange format: "06.00 - 07.30" or "06:00 - 07:30"
+ *
+ * @param utcOffset — If provided (e.g. 7 for WIB/UTC+7), uses UTC-based
+ *   calculation so the result is correct regardless of server timezone.
+ *   Omit on the client side so the browser's local timezone is used.
  */
 export function parseScheduleTimes(
   date: string | Date,
   timeRange: string,
+  utcOffset?: number,
 ): { start: Date; end: Date } {
   const d = typeof date === "string" ? new Date(date) : date;
   const times = timeRange.split("-").map((t) => t.trim().replace(".", ":"));
@@ -14,10 +19,15 @@ export function parseScheduleTimes(
   const [endH, endM] = (times[1] || times[0]).split(":").map(Number);
 
   const start = new Date(d);
-  start.setHours(startH, startM, 0, 0);
-
   const end = new Date(d);
-  end.setHours(endH, endM, 0, 0);
+
+  if (utcOffset !== undefined) {
+    start.setUTCHours(startH - utcOffset, startM, 0, 0);
+    end.setUTCHours(endH - utcOffset, endM, 0, 0);
+  } else {
+    start.setHours(startH, startM, 0, 0);
+    end.setHours(endH, endM, 0, 0);
+  }
 
   return { start, end };
 }

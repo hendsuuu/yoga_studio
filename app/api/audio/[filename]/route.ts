@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
-import { stat, readFile } from "fs/promises";
+import { NextRequest, NextResponse } from "next/server";
+import { stat, open } from "fs/promises";
 import path from "path";
 
 const AUDIO_DIR =
@@ -16,7 +16,7 @@ const MIME_TYPES: Record<string, string> = {
 };
 
 export async function GET(
-  _req: Request,
+  req: NextRequest,
   { params }: { params: Promise<{ filename: string }> },
 ) {
   const { filename } = await params;
@@ -41,14 +41,68 @@ export async function GET(
 
     const ext = path.extname(filename).toLowerCase();
     const contentType = MIME_TYPES[ext] || "application/octet-stream";
+    const fileSize = fileStat.size;
 
-    const buffer = await readFile(filePath);
-    return new NextResponse(buffer, {
+    const rangeHeader = req.headers.get("range");
+
+    // Range request (required by iOS Safari and many mobile browsers)
+    if (rangeHeader) {
+      const match = rangeHeader.match(/bytes=(\d+)-(\d*)/);
+      if (!match) {
+        return new NextResponse(null, {
+          status: 416,
+          headers: { "Content-Range": `bytes */${fileSize}` },
+        });
+      }
+
+      const start = parseInt(match[1], 10);
+      const end = match[2] ? parseInt(match[2], 10) : fileSize - 1;
+
+      if (start >= fileSize || end >= fileSize || start > end) {
+        return new NextResponse(null, {
+          status: 416,
+          headers: { "Content-Range": `bytes */${fileSize}` },
+        });
+      }
+
+      const chunkSize = end - start + 1;
+      const fileHandle = await open(filePath, "r");
+      const buffer = Buffer.alloc(chunkSize);
+      await fileHandle.read(buffer, 0, chunkSize, start);
+      await fileHandle.close();
+
+      return new NextResponse(buffer, {
+        status: 206,
+        headers: {
+          "Content-Type": contentType,
+          "Content-Length": chunkSize.toString(),
+          "Content-Range": `bytes ${start}-${end}/${fileSize}`,
+          "Accept-Ranges": "bytes",
+          "Cache-Control": "public, max-age=31536000, immutable",
+        },
+      });
+    }
+
+    // Full file request — stream instead of loading entirely into memory
+    const fileHandle = await open(filePath, "r");
+    const stream = fileHandle.createReadStream();
+    const webStream = new ReadableStream({
+      start(controller) {
+        stream.on("data", (chunk) => controller.enqueue(chunk));
+        stream.on("end", () => controller.close());
+        stream.on("error", (err) => controller.error(err));
+      },
+      cancel() {
+        stream.destroy();
+      },
+    });
+
+    return new NextResponse(webStream, {
       headers: {
         "Content-Type": contentType,
-        "Content-Length": fileStat.size.toString(),
-        "Cache-Control": "public, max-age=31536000, immutable",
+        "Content-Length": fileSize.toString(),
         "Accept-Ranges": "bytes",
+        "Cache-Control": "public, max-age=31536000, immutable",
       },
     });
   } catch {
