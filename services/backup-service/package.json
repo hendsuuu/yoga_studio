@@ -1,0 +1,12 @@
+{
+  "name": "nutriklik-backup",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Daily PostgreSQL backup to Google Drive for NutriKlik",
+  "scripts": {
+    "start": "node backup.js"
+  },
+  "dependencies": {
+    "googleapis": "^144.0.0"
+  }
+}

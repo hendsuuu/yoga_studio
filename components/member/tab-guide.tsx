@@ -84,8 +84,12 @@ function PoseScan() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setResult(data.text);
-    } catch {
-      toast.error("AI sedang sibuk, coba lagi");
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Fitur AI sedang tidak tersedia. Silakan coba lagi nanti.";
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -228,8 +232,12 @@ function SequenceBuilder() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setResult(data.text);
-    } catch {
-      toast.error("AI sedang sibuk, coba lagi");
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Fitur AI sedang tidak tersedia. Silakan coba lagi nanti.";
+      toast.error(message);
     } finally {
       setLoading(false);
     }

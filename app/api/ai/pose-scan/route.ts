@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { generateAiContent } from "@/lib/api/ai-service";
+import { generateAiContent, AiServiceError } from "@/lib/api/ai-service";
 import { getMemberSession } from "@/lib/auth/session";
 import { checkAiLimit, logAiUsage } from "@/lib/api/ai-limit";
 
@@ -67,8 +67,13 @@ export async function POST(req: Request) {
     await logAiUsage(session.id, "pose-scan");
     return NextResponse.json({ text });
   } catch (err) {
-    const message =
-      err instanceof Error ? err.message : "AI service unavailable";
-    return NextResponse.json({ error: message }, { status: 503 });
+    if (err instanceof AiServiceError) {
+      const status = err.code === "AI_RATE_LIMITED" ? 429 : 503;
+      return NextResponse.json({ error: err.userMessage }, { status });
+    }
+    return NextResponse.json(
+      { error: "Fitur AI sedang tidak tersedia. Silakan coba lagi nanti." },
+      { status: 503 },
+    );
   }
 }
