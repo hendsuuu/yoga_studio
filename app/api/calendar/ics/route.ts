@@ -20,7 +20,11 @@ export async function GET(req: NextRequest) {
   if (!schedule)
     return NextResponse.json({ error: "Schedule not found" }, { status: 404 });
 
-  const { start, end } = parseScheduleTimes(schedule.date, schedule.timeRange, 7);
+  const { start, end } = parseScheduleTimes(
+    schedule.date,
+    schedule.timeRange,
+    7,
+  );
 
   const ics = generateICS({
     title: schedule.title,

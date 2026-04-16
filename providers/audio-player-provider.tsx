@@ -186,12 +186,15 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
         .catch(() => {
           // Some browsers need a small delay after load
           setTimeout(() => {
-            audio.play().then(() => {
-              setIsPlaying(true);
-              startProgressTracking();
-            }).catch(() => {
-              setIsPlaying(false);
-            });
+            audio
+              .play()
+              .then(() => {
+                setIsPlaying(true);
+                startProgressTracking();
+              })
+              .catch(() => {
+                setIsPlaying(false);
+              });
           }, 100);
         });
     },

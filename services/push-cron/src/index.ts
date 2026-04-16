@@ -1,7 +1,7 @@
 import "dotenv/config";
 import cron from "node-cron";
 
-const CRON_SCHEDULE = process.env.CRON_SCHEDULE || "*/5 * * * *"; // every 5 minutes
+const CRON_SCHEDULE = process.env.CRON_SCHEDULE || "0 6 * * *"; // daily at 06:00 WIB (UTC+7 = 23:00 UTC prev day)
 const APP_URL = process.env.APP_URL;
 const CRON_SECRET = process.env.CRON_SECRET;
 
