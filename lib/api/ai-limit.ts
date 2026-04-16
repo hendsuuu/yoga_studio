@@ -1,43 +1,57 @@
 import { prisma } from "@/lib/db/prisma";
-import { startOfDay, endOfDay } from "date-fns";
+import { startOfDay } from "date-fns";
 
 export async function checkAiLimit(userId: string): Promise<{
   allowed: boolean;
-  used: number;
+  remaining: number;
   limit: number;
 }> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { tier: true, aiDailyLimit: true },
-  });
-
-  if (!user) return { allowed: false, used: 0, limit: 0 };
-
-  const now = new Date();
-  const used = await prisma.aiUsageLog.count({
-    where: {
-      memberId: userId,
-      createdAt: { gte: startOfDay(now), lte: endOfDay(now) },
+    select: {
+      aiDailyLimit: true,
+      aiDailyLimitMax: true,
+      aiLimitResetDate: true,
     },
   });
 
+  if (!user) return { allowed: false, remaining: 0, limit: 0 };
+
+  const today = startOfDay(new Date());
+  let remaining = user.aiDailyLimit;
+
+  // Auto-reset jika hari baru
+  if (!user.aiLimitResetDate || startOfDay(user.aiLimitResetDate) < today) {
+    remaining = user.aiDailyLimitMax;
+    await prisma.user.update({
+      where: { id: userId },
+      data: { aiDailyLimit: user.aiDailyLimitMax, aiLimitResetDate: today },
+    });
+  }
+
   return {
-    allowed: used < user.aiDailyLimit,
-    used,
-    limit: user.aiDailyLimit,
+    allowed: remaining > 0,
+    remaining,
+    limit: user.aiDailyLimitMax,
   };
 }
 
-export async function logAiUsage(
+export async function consumeAiLimit(
   userId: string,
   feature: string,
   prompt?: string,
 ) {
-  await prisma.aiUsageLog.create({
-    data: {
-      memberId: userId,
-      feature,
-      prompt: prompt?.slice(0, 500),
-    },
-  });
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: userId },
+      data: { aiDailyLimit: { decrement: 1 } },
+    }),
+    prisma.aiUsageLog.create({
+      data: {
+        memberId: userId,
+        feature,
+        prompt: prompt?.slice(0, 500),
+      },
+    }),
+  ]);
 }

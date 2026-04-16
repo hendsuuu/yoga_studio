@@ -21,6 +21,7 @@ export async function GET() {
       tier: true,
       isActive: true,
       aiDailyLimit: true,
+      aiDailyLimitMax: true,
       membershipExpiresAt: true,
       createdAt: true,
     },
@@ -67,6 +68,7 @@ export async function POST(req: NextRequest) {
       tier: tier === "PREMIUM" ? "PREMIUM" : "FREE",
       isActive: true,
       aiDailyLimit: tier === "PREMIUM" ? 10 : 6,
+      aiDailyLimitMax: tier === "PREMIUM" ? 10 : 6,
       membershipExpiresAt,
     },
     select: {
@@ -78,6 +80,7 @@ export async function POST(req: NextRequest) {
       tier: true,
       isActive: true,
       aiDailyLimit: true,
+      aiDailyLimitMax: true,
       membershipExpiresAt: true,
       createdAt: true,
     },

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getMemberSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/prisma";
-import { startOfDay, endOfDay } from "date-fns";
+import { startOfDay } from "date-fns";
 
 export async function GET() {
   const session = await getMemberSession();
@@ -19,6 +19,8 @@ export async function GET() {
       isActive: true,
       tier: true,
       aiDailyLimit: true,
+      aiDailyLimitMax: true,
+      aiLimitResetDate: true,
       membershipExpiresAt: true,
     },
   });
@@ -40,14 +42,23 @@ export async function GET() {
     member.isActive = false;
   }
 
-  // Count today's AI usage
-  const now = new Date();
-  const aiUsedToday = await prisma.aiUsageLog.count({
-    where: {
-      memberId: member.id,
-      createdAt: { gte: startOfDay(now), lte: endOfDay(now) },
-    },
-  });
+  // Auto-reset AI limit if it's a new day
+  const today = startOfDay(new Date());
+  let aiRemaining = member.aiDailyLimit;
+  if (
+    !member.aiLimitResetDate ||
+    startOfDay(new Date(member.aiLimitResetDate)) < today
+  ) {
+    aiRemaining = member.aiDailyLimitMax;
+    await prisma.user.update({
+      where: { id: member.id },
+      data: { aiDailyLimit: member.aiDailyLimitMax, aiLimitResetDate: today },
+    });
+  }
 
-  return NextResponse.json({ ...member, aiUsedToday });
+  return NextResponse.json({
+    ...member,
+    aiDailyLimit: aiRemaining,
+    aiUsedToday: member.aiDailyLimitMax - aiRemaining,
+  });
 }

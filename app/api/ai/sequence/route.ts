@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { generateAiContent, AiServiceError } from "@/lib/api/ai-service";
 import { getMemberSession } from "@/lib/auth/session";
-import { checkAiLimit, logAiUsage } from "@/lib/api/ai-limit";
+import { checkAiLimit, consumeAiLimit } from "@/lib/api/ai-limit";
 
 export async function POST(req: Request) {
   try {
@@ -9,11 +9,11 @@ export async function POST(req: Request) {
     if (!session)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { allowed, used, limit } = await checkAiLimit(session.id);
+    const { allowed, remaining, limit } = await checkAiLimit(session.id);
     if (!allowed) {
       return NextResponse.json(
         {
-          error: `Batas AI harian tercapai (${used}/${limit}). Coba lagi besok.`,
+          error: `Batas AI harian tercapai (0/${limit}). Coba lagi besok.`,
         },
         { status: 429 },
       );
@@ -48,8 +48,8 @@ export async function POST(req: Request) {
                 `,
     });
 
-    await logAiUsage(session.id, "sequence", focus);
-    return NextResponse.json({ text });
+    await consumeAiLimit(session.id, "sequence", focus);
+    return NextResponse.json({ text, remaining: remaining - 1, limit });
   } catch (err) {
     if (err instanceof AiServiceError) {
       const status = err.code === "AI_RATE_LIMITED" ? 429 : 503;

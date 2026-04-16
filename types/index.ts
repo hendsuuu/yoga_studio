@@ -9,6 +9,7 @@ export type MemberSession = {
   isActive: boolean;
   tier: UserTier;
   aiDailyLimit: number;
+  aiDailyLimitMax: number;
   aiUsedToday: number;
   membershipExpiresAt: string | null;
 };
@@ -69,6 +70,7 @@ export type AdminMember = {
   tier: UserTier;
   isActive: boolean;
   aiDailyLimit: number;
+  aiDailyLimitMax: number;
   membershipExpiresAt: string | null;
   createdAt: string;
 };

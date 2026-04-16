@@ -19,7 +19,7 @@ export async function PUT(req: NextRequest) {
 
   const result = await prisma.user.updateMany({
     where: { role: "MEMBER" },
-    data: { aiDailyLimit },
+    data: { aiDailyLimit, aiDailyLimitMax: aiDailyLimit },
   });
 
   return NextResponse.json({ updated: result.count });
