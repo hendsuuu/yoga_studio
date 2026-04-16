@@ -8,7 +8,11 @@ export async function checkAiLimit(userId: string): Promise<{
 }> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { aiDailyLimit: true, aiDailyLimitMax: true, aiLimitResetDate: true },
+    select: {
+      aiDailyLimit: true,
+      aiDailyLimitMax: true,
+      aiLimitResetDate: true,
+    },
   });
 
   if (!user) return { allowed: false, remaining: 0, limit: 0 };

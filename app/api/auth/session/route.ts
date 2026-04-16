@@ -45,7 +45,10 @@ export async function GET() {
   // Auto-reset AI limit if it's a new day
   const today = startOfDay(new Date());
   let aiRemaining = member.aiDailyLimit;
-  if (!member.aiLimitResetDate || startOfDay(new Date(member.aiLimitResetDate)) < today) {
+  if (
+    !member.aiLimitResetDate ||
+    startOfDay(new Date(member.aiLimitResetDate)) < today
+  ) {
     aiRemaining = member.aiDailyLimitMax;
     await prisma.user.update({
       where: { id: member.id },
