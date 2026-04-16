@@ -162,7 +162,8 @@ export function ScheduleCard({ schedule }: Props) {
             {schedule.tools.split(",").map((tool, i) => (
               <div
                 key={i}
-                className="flex items-center gap-1 px-2 py-0.5 bg-primary/5 text-primary rounded-md text-[9px] font-bold uppercase border border-primary/10">
+                className="flex items-center gap-1 px-2 py-0.5 bg-primary/5 text-primary rounded-md text-[9px] font-bold uppercase border border-primary/10"
+              >
                 <CheckCircle2 className="w-2.5 h-2.5" /> {tool.trim()}
               </div>
             ))}
@@ -182,7 +183,8 @@ export function ScheduleCard({ schedule }: Props) {
             </div>
             <button
               onClick={() => copy(schedule.meetingId || "", "ID")}
-              className="p-1 bg-white rounded-md shadow-sm text-primary hover:bg-rose-bg transition-colors">
+              className="p-1 bg-white rounded-md shadow-sm text-primary hover:bg-rose-bg transition-colors"
+            >
               <Copy className="w-3 h-3" />
             </button>
           </div>
@@ -197,7 +199,8 @@ export function ScheduleCard({ schedule }: Props) {
             </div>
             <button
               onClick={() => copy(schedule.meetingPass || "", "Pass")}
-              className="p-1 bg-white rounded-md shadow-sm text-primary hover:bg-rose-bg transition-colors">
+              className="p-1 bg-white rounded-md shadow-sm text-primary hover:bg-rose-bg transition-colors"
+            >
               <Copy className="w-3 h-3" />
             </button>
           </div>
@@ -212,7 +215,8 @@ export function ScheduleCard({ schedule }: Props) {
               reminderActive
                 ? "bg-primary text-white shadow-sm"
                 : "bg-primary/5 text-primary border border-primary/15 hover:bg-primary/10"
-            }`}>
+            }`}
+          >
             {reminderActive ? (
               <>
                 <BellOff className="w-3.5 h-3.5" />
@@ -229,7 +233,8 @@ export function ScheduleCard({ schedule }: Props) {
           <div className="relative">
             <button
               onClick={() => setCalendarOpen(!calendarOpen)}
-              className="flex items-center justify-center gap-1.5 w-full py-2.5 rounded-lg bg-primary/5 text-primary border border-primary/15 text-[10px] font-bold uppercase tracking-wider hover:bg-primary/10 transition-all active:scale-[0.97]">
+              className="flex items-center justify-center gap-1.5 w-full py-2.5 rounded-lg bg-primary/5 text-primary border border-primary/15 text-[10px] font-bold uppercase tracking-wider hover:bg-primary/10 transition-all active:scale-[0.97]"
+            >
               <CalendarPlus className="w-3.5 h-3.5" />
               TAMBAH KE KALENDER
             </button>
@@ -242,13 +247,15 @@ export function ScheduleCard({ schedule }: Props) {
                 <div className="absolute bottom-full left-0 right-0 mb-1 bg-white rounded-lg shadow-lg border border-gray-100 z-30 overflow-hidden">
                   <button
                     onClick={handleICSDownload}
-                    className="w-full px-3 py-2.5 text-left text-[11px] font-semibold text-gray-700 hover:bg-rose-bg/50 transition-colors flex items-center gap-2">
+                    className="w-full px-3 py-2.5 text-left text-[11px] font-semibold text-gray-700 hover:bg-rose-bg/50 transition-colors flex items-center gap-2"
+                  >
                     <CalendarPlus className="w-4 h-4 text-primary" />
                     Simpan ke Kalender HP
                   </button>
                   <button
                     onClick={handleGoogleCalendar}
-                    className="w-full px-3 py-2.5 text-left text-[11px] font-semibold text-gray-700 hover:bg-rose-bg/50 transition-colors flex items-center gap-2 border-t border-gray-50">
+                    className="w-full px-3 py-2.5 text-left text-[11px] font-semibold text-gray-700 hover:bg-rose-bg/50 transition-colors flex items-center gap-2 border-t border-gray-50"
+                  >
                     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
                       <path
                         d="M18 3H6a3 3 0 00-3 3v12a3 3 0 003 3h12a3 3 0 003-3V6a3 3 0 00-3-3z"
@@ -290,7 +297,8 @@ export function ScheduleCard({ schedule }: Props) {
           href={schedule.zoomUrl || "#"}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 w-full py-3 rounded-lg bg-secondary text-white text-[11px] font-bold uppercase tracking-widest hover:bg-secondary/90 active:scale-[0.98] transition-all">
+          className="flex items-center justify-center gap-2 w-full py-3 rounded-lg bg-secondary text-white text-[11px] font-bold uppercase tracking-widest hover:bg-secondary/90 active:scale-[0.98] transition-all"
+        >
           <Video className="w-3.5 h-3.5" /> MASUK STUDIO
         </a>
       </div>
