@@ -23,7 +23,7 @@ const STEPS: Record<
   chrome: {
     label: "Google Chrome",
     steps: [
-      'Klik ikon 🔒 atau ⓘ di sebelah kiri URL bar',
+      "Klik ikon 🔒 atau ⓘ di sebelah kiri URL bar",
       'Pilih "Izin situs" atau "Site settings"',
       'Cari "Notifikasi" dan ubah ke "Izinkan"',
       "Muat ulang halaman ini lalu coba lagi",
@@ -32,7 +32,7 @@ const STEPS: Record<
   edge: {
     label: "Microsoft Edge",
     steps: [
-      'Klik ikon 🔒 di sebelah kiri URL bar',
+      "Klik ikon 🔒 di sebelah kiri URL bar",
       'Klik "Izin untuk situs ini"',
       'Temukan "Notifikasi" dan pilih "Izinkan"',
       "Muat ulang halaman lalu coba lagi",
@@ -41,8 +41,8 @@ const STEPS: Record<
   firefox: {
     label: "Mozilla Firefox",
     steps: [
-      'Klik ikon 🔒 di sebelah kiri URL bar',
-      'Klik panah ▶ di sebelah nama koneksi',
+      "Klik ikon 🔒 di sebelah kiri URL bar",
+      "Klik panah ▶ di sebelah nama koneksi",
       'Pilih "More Information"',
       'Buka tab "Permissions" → Notifications → pilih "Allow"',
       "Muat ulang halaman lalu coba lagi",
