@@ -1,5 +1,5 @@
 /**
- * NutriKlik Database Backup Service
+ * Kelas Yoga Database Backup Service
  *
  * Dumps the PostgreSQL database using pg_dump and uploads the .sql file
  * to Google Drive using OAuth2 (personal account).
@@ -63,7 +63,7 @@ async function runBackup() {
   // WIB timestamp for filename (UTC+7)
   const wib = new Date(now.getTime() + 7 * 60 * 60 * 1000);
   const timestamp = wib.toISOString().replace(/[:.]/g, "-").slice(0, 19);
-  const filename = `nutriklik-backup-${timestamp}.sql`;
+  const filename = `yoga-backup-${timestamp}.sql`;
   const filepath = path.join("/tmp", filename);
 
   console.log(`🔄 Starting database backup: ${filename}`);
@@ -162,7 +162,7 @@ async function cleanupOldBackups(drive) {
     );
 
     const res = await drive.files.list({
-      q: `'${GOOGLE_DRIVE_FOLDER_ID}' in parents and name contains 'nutriklik-backup-' and createdTime < '${cutoffISO}' and trashed = false`,
+      q: `'${GOOGLE_DRIVE_FOLDER_ID}' in parents and name contains 'yoga-backup-' and createdTime < '${cutoffISO}' and trashed = false`,
       fields: "files(id,name,createdTime)",
       pageSize: 100,
       supportAllDrives: true,
