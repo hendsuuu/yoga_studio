@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/prisma";
+import { normalizeAudioUrl } from "@/lib/audio-versioning";
 
 export async function PUT(
   req: Request,
@@ -18,18 +19,25 @@ export async function PUT(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
+  const normalizedUrl = body.url
+    ? await normalizeAudioUrl(body.url)
+    : existing.url;
+
   const updated = await prisma.musicTrack.update({
     where: { id },
     data: {
       title: body.title ?? existing.title,
       artist: body.artist ?? existing.artist,
       duration: body.duration ?? existing.duration,
-      url: body.url ?? existing.url,
+      url: normalizedUrl,
       category: body.category ?? existing.category,
     },
   });
 
-  return NextResponse.json(updated);
+  return NextResponse.json({
+    ...updated,
+    url: normalizedUrl,
+  });
 }
 
 export async function DELETE(
