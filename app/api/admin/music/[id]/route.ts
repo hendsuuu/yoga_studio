@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/prisma";
-import { normalizeAudioUrl } from "@/lib/audio-versioning";
+import {
+  deleteInternalAudioFile,
+  extractAudioFilenameFromUrl,
+  normalizeAudioUrl,
+} from "@/lib/audio-versioning";
 
 export async function PUT(
   req: Request,
@@ -55,6 +59,28 @@ export async function DELETE(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
+  const audioFilename = extractAudioFilenameFromUrl(existing.url);
+  let deletedAudioFile = false;
+
+  if (audioFilename) {
+    const otherTracks = await prisma.musicTrack.findMany({
+      where: { id: { not: id } },
+      select: { url: true },
+    });
+
+    const isStillReferenced = otherTracks.some(
+      (track) => extractAudioFilenameFromUrl(track.url) === audioFilename,
+    );
+
+    await prisma.musicTrack.delete({ where: { id } });
+
+    if (!isStillReferenced) {
+      deletedAudioFile = await deleteInternalAudioFile(audioFilename);
+    }
+
+    return NextResponse.json({ success: true, deletedAudioFile });
+  }
+
   await prisma.musicTrack.delete({ where: { id } });
-  return NextResponse.json({ success: true });
+  return NextResponse.json({ success: true, deletedAudioFile: false });
 }
