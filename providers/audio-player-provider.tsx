@@ -9,9 +9,18 @@ import {
   useEffect,
   type ReactNode,
 } from "react";
+import { toast } from "sonner";
 import type { MusicTrack } from "@/types";
 
 export type PlayMode = "sequential" | "shuffle" | "loop-one";
+
+type PlaybackContext =
+  | "play"
+  | "play-delayed-retry"
+  | "media-error-retry"
+  | "media-error"
+  | "resume"
+  | "loop-restart";
 
 interface AudioPlayerContextType {
   tracks: MusicTrack[];
@@ -32,6 +41,28 @@ interface AudioPlayerContextType {
   cyclePlayMode: () => void;
 }
 
+const MEDIA_ERROR_LABELS: Record<number, string> = {
+  1: "aborted",
+  2: "network",
+  3: "decode",
+  4: "not-supported",
+};
+
+const NETWORK_STATE_LABELS: Record<number, string> = {
+  0: "empty",
+  1: "idle",
+  2: "loading",
+  3: "no-source",
+};
+
+const READY_STATE_LABELS: Record<number, string> = {
+  0: "nothing",
+  1: "metadata",
+  2: "current-data",
+  3: "future-data",
+  4: "enough-data",
+};
+
 const AudioPlayerContext = createContext<AudioPlayerContextType>({
   tracks: [],
   currentTrack: null,
@@ -51,6 +82,74 @@ const AudioPlayerContext = createContext<AudioPlayerContextType>({
   cyclePlayMode: () => {},
 });
 
+function describePlaybackFailure(
+  track: MusicTrack | null,
+  audio: HTMLAudioElement,
+  context: PlaybackContext,
+  error?: unknown,
+) {
+  const domErrorName =
+    error instanceof DOMException
+      ? error.name
+      : error instanceof Error
+        ? error.name
+        : null;
+  const domErrorMessage =
+    error instanceof Error && error.message ? error.message : null;
+  const mediaErrorCode = audio.error?.code ?? null;
+  const mediaErrorLabel = mediaErrorCode
+    ? MEDIA_ERROR_LABELS[mediaErrorCode] || `code-${mediaErrorCode}`
+    : null;
+
+  let description =
+    "Terjadi kendala saat memuat audio. Coba ulangi beberapa saat lagi.";
+
+  if (domErrorName === "NotAllowedError") {
+    description =
+      "Browser memblokir pemutaran audio. Coba tekan play sekali lagi dan pastikan mode senyap atau pembatas autoplay tidak aktif.";
+  } else if (domErrorName === "NotSupportedError" || mediaErrorCode === 4) {
+    description =
+      "Format audio tidak didukung atau file audio tidak bisa dibaca di perangkat ini.";
+  } else if (mediaErrorCode === 2) {
+    description =
+      "Audio gagal dimuat dari server. Kemungkinan koneksi tidak stabil atau file tidak bisa diakses.";
+  } else if (mediaErrorCode === 3) {
+    description =
+      "Audio berhasil dimuat tetapi gagal didekode. File mungkin rusak atau formatnya bermasalah.";
+  }
+
+  const debugParts = [
+    domErrorName ? `error=${domErrorName}` : null,
+    domErrorMessage ? `message=${domErrorMessage}` : null,
+    mediaErrorLabel ? `media=${mediaErrorLabel}` : null,
+    `ready=${READY_STATE_LABELS[audio.readyState] || audio.readyState}`,
+    `network=${NETWORK_STATE_LABELS[audio.networkState] || audio.networkState}`,
+    `context=${context}`,
+  ].filter(Boolean);
+
+  return {
+    title: track
+      ? `Audio "${track.title}" tidak bisa diputar`
+      : "Audio tidak bisa diputar",
+    description: `${description} Detail: ${debugParts.join(" | ")}`,
+    debug: {
+      trackId: track?.id ?? null,
+      trackTitle: track?.title ?? null,
+      trackUrl: track?.url ?? null,
+      currentSrc: audio.currentSrc || null,
+      domErrorName,
+      domErrorMessage,
+      mediaErrorCode,
+      mediaErrorLabel,
+      networkState: audio.networkState,
+      readyState: audio.readyState,
+      context,
+      userAgent:
+        typeof navigator !== "undefined" ? navigator.userAgent : "unknown",
+    },
+  };
+}
+
 export function useAudioPlayer() {
   return useContext(AudioPlayerContext);
 }
@@ -66,14 +165,20 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
   const animFrameRef = useRef<number | null>(null);
   const playModeRef = useRef<PlayMode>(playMode);
   const tracksRef = useRef<MusicTrack[]>(tracks);
+  const currentTrackRef = useRef<MusicTrack | null>(currentTrack);
+  const lastPlaybackErrorKeyRef = useRef<string | null>(null);
 
-  // Keep refs in sync
   useEffect(() => {
     playModeRef.current = playMode;
   }, [playMode]);
+
   useEffect(() => {
     tracksRef.current = tracks;
   }, [tracks]);
+
+  useEffect(() => {
+    currentTrackRef.current = currentTrack;
+  }, [currentTrack]);
 
   const stopProgressTracking = useCallback(() => {
     if (animFrameRef.current) {
@@ -84,45 +189,115 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
 
   const startProgressTracking = useCallback(() => {
     stopProgressTracking();
+
     function tick() {
       if (audioRef.current) {
         setProgress(audioRef.current.currentTime);
       }
       animFrameRef.current = requestAnimationFrame(tick);
     }
+
     animFrameRef.current = requestAnimationFrame(tick);
   }, [stopProgressTracking]);
 
+  const reportPlaybackFailure = useCallback(
+    (
+      audio: HTMLAudioElement,
+      track: MusicTrack | null,
+      context: PlaybackContext,
+      error?: unknown,
+    ) => {
+      if (audioRef.current !== audio) return;
+
+      const domErrorName =
+        error instanceof DOMException
+          ? error.name
+          : error instanceof Error
+            ? error.name
+            : null;
+
+      // This is expected when the user changes tracks before playback settles.
+      if (domErrorName === "AbortError") return;
+
+      const mediaErrorCode = audio.error?.code ?? null;
+      const errorKey = [
+        track?.id ?? "unknown",
+        audio.currentSrc || track?.url || "no-src",
+        domErrorName ?? "no-dom-error",
+        mediaErrorCode ?? "no-media-error",
+      ].join("|");
+
+      if (lastPlaybackErrorKeyRef.current === errorKey) return;
+      lastPlaybackErrorKeyRef.current = errorKey;
+
+      setIsPlaying(false);
+      stopProgressTracking();
+
+      const failure = describePlaybackFailure(track, audio, context, error);
+      console.error("[audio-player] Playback failed", failure.debug);
+      toast.error(failure.title, {
+        description: failure.description,
+        duration: 8000,
+      });
+    },
+    [stopProgressTracking],
+  );
+
+  const attemptPlayback = useCallback(
+    async (
+      audio: HTMLAudioElement,
+      track: MusicTrack | null,
+      context: PlaybackContext,
+      reportFailure: boolean,
+    ) => {
+      try {
+        await audio.play();
+        if (audioRef.current !== audio) return false;
+        lastPlaybackErrorKeyRef.current = null;
+        setIsPlaying(true);
+        startProgressTracking();
+        return true;
+      } catch (error) {
+        if (audioRef.current !== audio) return false;
+        setIsPlaying(false);
+        if (reportFailure) {
+          reportPlaybackFailure(audio, track, context, error);
+        }
+        return false;
+      }
+    },
+    [reportPlaybackFailure, startProgressTracking],
+  );
+
   const play = useCallback(
     (track: MusicTrack) => {
-      // Cleanup previous audio
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.removeAttribute("src");
         audioRef.current.load();
         audioRef.current = null;
       }
+
       stopProgressTracking();
+      lastPlaybackErrorKeyRef.current = null;
 
       const audio = new Audio();
       audioRef.current = audio;
 
-      // Set state immediately for UI responsiveness
       setCurrentTrack(track);
       setProgress(0);
       setDuration(0);
 
-      // Cross-browser compatibility: preload metadata first (required by iOS Safari)
       audio.preload = "metadata";
-      // Prevent iOS from requiring full download before playing
       audio.setAttribute("playsinline", "true");
 
       audio.addEventListener("loadedmetadata", () => {
+        if (audioRef.current !== audio) return;
         setDuration(audio.duration);
       });
 
-      // Fallback for duration on devices that don't fire loadedmetadata reliably
       audio.addEventListener("durationchange", () => {
+        if (audioRef.current !== audio) return;
         if (audio.duration && isFinite(audio.duration)) {
           setDuration(audio.duration);
         }
@@ -134,21 +309,22 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
 
         if (mode === "loop-one") {
           audio.currentTime = 0;
-          audio.play().catch(() => setIsPlaying(false));
+          void attemptPlayback(audio, track, "loop-restart", true);
           return;
         }
 
         if (mode === "shuffle") {
           if (allTracks.length <= 1) return;
+
           let randomIdx: number;
           do {
             randomIdx = Math.floor(Math.random() * allTracks.length);
           } while (allTracks[randomIdx].id === track.id);
+
           setTimeout(() => play(allTracks[randomIdx]), 100);
           return;
         }
 
-        // Sequential: play next or stop at end
         const idx = allTracks.findIndex((t) => t.id === track.id);
         if (idx < allTracks.length - 1) {
           setTimeout(() => play(allTracks[idx + 1]), 100);
@@ -158,47 +334,45 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
         }
       });
 
-      // Retry once on network error before giving up
       let retried = false;
       audio.addEventListener("error", () => {
+        if (audioRef.current !== audio) return;
+
         if (!retried) {
           retried = true;
           audio.load();
-          audio.play().catch(() => {
-            setIsPlaying(false);
-            stopProgressTracking();
-          });
+          void attemptPlayback(audio, track, "media-error-retry", true);
           return;
         }
-        setIsPlaying(false);
-        stopProgressTracking();
+
+        reportPlaybackFailure(audio, track, "media-error");
       });
 
-      // Set source and play — keeps user gesture context for autoplay policy
+      audio.addEventListener("stalled", () => {
+        if (audioRef.current !== audio) return;
+        console.warn("[audio-player] Playback stalled", {
+          trackId: track.id,
+          trackTitle: track.title,
+          trackUrl: track.url,
+          currentSrc: audio.currentSrc || null,
+          networkState: audio.networkState,
+          readyState: audio.readyState,
+        });
+      });
+
       audio.src = track.url;
       audio.load();
-      audio
-        .play()
-        .then(() => {
-          setIsPlaying(true);
-          startProgressTracking();
-        })
-        .catch(() => {
-          // Some browsers need a small delay after load
-          setTimeout(() => {
-            audio
-              .play()
-              .then(() => {
-                setIsPlaying(true);
-                startProgressTracking();
-              })
-              .catch(() => {
-                setIsPlaying(false);
-              });
-          }, 100);
-        });
+
+      void attemptPlayback(audio, track, "play", false).then((started) => {
+        if (started || audioRef.current !== audio) return;
+
+        setTimeout(() => {
+          if (audioRef.current !== audio) return;
+          void attemptPlayback(audio, track, "play-delayed-retry", true);
+        }, 100);
+      });
     },
-    [stopProgressTracking, startProgressTracking],
+    [attemptPlayback, reportPlaybackFailure, startProgressTracking, stopProgressTracking],
   );
 
   const pause = useCallback(() => {
@@ -209,39 +383,41 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
 
   const resume = useCallback(() => {
     if (audioRef.current) {
-      audioRef.current
-        .play()
-        .then(() => {
-          setIsPlaying(true);
-          startProgressTracking();
-        })
-        .catch(() => {});
+      void attemptPlayback(
+        audioRef.current,
+        currentTrackRef.current,
+        "resume",
+        true,
+      );
     }
-  }, [startProgressTracking]);
+  }, [attemptPlayback]);
 
   const next = useCallback(() => {
     if (!currentTrack || tracks.length === 0) return;
+
     if (playMode === "shuffle") {
       let randomIdx: number;
       do {
         randomIdx = Math.floor(Math.random() * tracks.length);
       } while (tracks.length > 1 && tracks[randomIdx].id === currentTrack.id);
       play(tracks[randomIdx]);
-    } else {
-      const idx = tracks.findIndex((t) => t.id === currentTrack.id);
-      const nextIdx = (idx + 1) % tracks.length;
-      play(tracks[nextIdx]);
+      return;
     }
+
+    const idx = tracks.findIndex((t) => t.id === currentTrack.id);
+    const nextIdx = (idx + 1) % tracks.length;
+    play(tracks[nextIdx]);
   }, [currentTrack, tracks, play, playMode]);
 
   const previous = useCallback(() => {
     if (!currentTrack || tracks.length === 0) return;
-    // If more than 3 seconds in, restart current track
+
     if (audioRef.current && audioRef.current.currentTime > 3) {
       audioRef.current.currentTime = 0;
       setProgress(0);
       return;
     }
+
     const idx = tracks.findIndex((t) => t.id === currentTrack.id);
     const prevIdx = idx <= 0 ? tracks.length - 1 : idx - 1;
     play(tracks[prevIdx]);
@@ -261,6 +437,8 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
       audioRef.current.load();
       audioRef.current = null;
     }
+
+    lastPlaybackErrorKeyRef.current = null;
     setCurrentTrack(null);
     setIsPlaying(false);
     setProgress(0);
