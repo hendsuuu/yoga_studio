@@ -371,7 +371,12 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
         }, 100);
       });
     },
-    [attemptPlayback, reportPlaybackFailure, startProgressTracking, stopProgressTracking],
+    [
+      attemptPlayback,
+      reportPlaybackFailure,
+      startProgressTracking,
+      stopProgressTracking,
+    ],
   );
 
   const pause = useCallback(() => {
