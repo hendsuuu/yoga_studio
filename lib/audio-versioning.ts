@@ -1,5 +1,5 @@
 import { createHash } from "crypto";
-import { stat } from "fs/promises";
+import { stat, unlink } from "fs/promises";
 import path from "path";
 
 const AUDIO_DIR =
@@ -7,6 +7,7 @@ const AUDIO_DIR =
 
 const INTERNAL_AUDIO_PREFIXES = ["/api/audio/", "/audio/"];
 const HASH_LENGTH = 12;
+const VALID_AUDIO_FILENAME_PATTERN = /^[\w\-.]+$/;
 const VERSIONED_FILENAME_PATTERN = /--([0-9a-f]{12,64})(\.[^.]+)$/i;
 
 function toAudioSlug(fileName: string) {
@@ -36,6 +37,20 @@ function formatAudioUrl(parsed: URL, preserveOrigin: boolean) {
   const prefix = preserveOrigin ? `${parsed.protocol}//${parsed.host}` : "";
   const search = parsed.search ? parsed.search : "";
   return `${prefix}${parsed.pathname}${search}`;
+}
+
+function resolveAudioFilePath(filename: string) {
+  if (!VALID_AUDIO_FILENAME_PATTERN.test(filename)) {
+    return null;
+  }
+
+  const filePath = path.resolve(AUDIO_DIR, filename);
+  const relativePath = path.relative(AUDIO_DIR, filePath);
+  if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
+    return null;
+  }
+
+  return filePath;
 }
 
 export function createVersionedAudioFilename(
@@ -75,8 +90,36 @@ export function isVersionedAudioRequest(
 }
 
 async function getAudioFileVersion(filename: string) {
-  const fileStats = await stat(path.join(AUDIO_DIR, filename));
+  const filePath = resolveAudioFilePath(filename);
+  if (!filePath) {
+    throw new Error("Invalid audio filename");
+  }
+
+  const fileStats = await stat(filePath);
   return Math.floor(fileStats.mtimeMs).toString(36);
+}
+
+export async function deleteInternalAudioFile(filename: string) {
+  const filePath = resolveAudioFilePath(filename);
+  if (!filePath) {
+    return false;
+  }
+
+  try {
+    await unlink(filePath);
+    return true;
+  } catch (error) {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === "ENOENT"
+    ) {
+      return false;
+    }
+
+    throw error;
+  }
 }
 
 export async function normalizeAudioUrl(url: string) {
