@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth/session";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
-import { randomUUID } from "crypto";
+import { createVersionedAudioFilename } from "@/lib/audio-versioning";
 
 const AUDIO_DIR =
   process.env.AUDIO_DIR || path.join(process.cwd(), "public", "audio");
@@ -36,12 +36,9 @@ export async function POST(req: Request) {
     );
   }
 
-  const ext = path.extname(file.name) || ".mp3";
-  const safeName = `${randomUUID()}${ext}`;
-
   await mkdir(AUDIO_DIR, { recursive: true });
-
   const buffer = Buffer.from(await file.arrayBuffer());
+  const safeName = createVersionedAudioFilename(file.name, buffer);
   await writeFile(path.join(AUDIO_DIR, safeName), buffer);
 
   return NextResponse.json({ url: `/api/audio/${safeName}` });

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stat, open } from "fs/promises";
 import path from "path";
+import { isVersionedAudioRequest } from "@/lib/audio-versioning";
 
 const AUDIO_DIR =
   process.env.AUDIO_DIR || path.join(process.cwd(), "public", "audio");
@@ -20,8 +21,9 @@ export async function GET(
   { params }: { params: Promise<{ filename: string }> },
 ) {
   const { filename } = await params;
+  const searchParams = new URL(req.url).searchParams;
 
-  // Sanitize filename — only allow alphanumeric, hyphens, dots, underscores
+  // Sanitize filename: only allow alphanumeric, hyphens, dots, underscores
   if (!/^[\w\-.]+$/.test(filename)) {
     return NextResponse.json({ error: "Invalid filename" }, { status: 400 });
   }
@@ -42,6 +44,10 @@ export async function GET(
     const ext = path.extname(filename).toLowerCase();
     const contentType = MIME_TYPES[ext] || "application/octet-stream";
     const fileSize = fileStat.size;
+    const lastModified = fileStat.mtime.toUTCString();
+    const cacheControl = isVersionedAudioRequest(filename, searchParams)
+      ? "public, max-age=31536000, immutable"
+      : "public, max-age=0, must-revalidate";
 
     const rangeHeader = req.headers.get("range");
 
@@ -78,12 +84,13 @@ export async function GET(
           "Content-Length": chunkSize.toString(),
           "Content-Range": `bytes ${start}-${end}/${fileSize}`,
           "Accept-Ranges": "bytes",
-          "Cache-Control": "public, max-age=31536000, immutable",
+          "Cache-Control": cacheControl,
+          "Last-Modified": lastModified,
         },
       });
     }
 
-    // Full file request — stream instead of loading entirely into memory
+    // Full file request: stream instead of loading entirely into memory
     const fileHandle = await open(filePath, "r");
     const stream = fileHandle.createReadStream();
     const webStream = new ReadableStream({
@@ -102,7 +109,8 @@ export async function GET(
         "Content-Type": contentType,
         "Content-Length": fileSize.toString(),
         "Accept-Ranges": "bytes",
-        "Cache-Control": "public, max-age=31536000, immutable",
+        "Cache-Control": cacheControl,
+        "Last-Modified": lastModified,
       },
     });
   } catch {

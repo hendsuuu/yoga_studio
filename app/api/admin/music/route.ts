@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/prisma";
+import { normalizeAudioUrl } from "@/lib/audio-versioning";
 
 export async function GET() {
   const session = await getAdminSession();
@@ -10,7 +11,15 @@ export async function GET() {
   const tracks = await prisma.musicTrack.findMany({
     orderBy: { createdAt: "desc" },
   });
-  return NextResponse.json(tracks);
+
+  const normalizedTracks = await Promise.all(
+    tracks.map(async (track) => ({
+      ...track,
+      url: await normalizeAudioUrl(track.url),
+    })),
+  );
+
+  return NextResponse.json(normalizedTracks);
 }
 
 export async function POST(req: Request) {
@@ -28,15 +37,23 @@ export async function POST(req: Request) {
     );
   }
 
+  const normalizedUrl = await normalizeAudioUrl(url);
+
   const track = await prisma.musicTrack.create({
     data: {
       title,
       artist,
       duration: duration || "0:00",
-      url,
+      url: normalizedUrl,
       category,
     },
   });
 
-  return NextResponse.json(track, { status: 201 });
+  return NextResponse.json(
+    {
+      ...track,
+      url: normalizedUrl,
+    },
+    { status: 201 },
+  );
 }
