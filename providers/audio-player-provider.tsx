@@ -109,7 +109,7 @@ function describePlaybackFailure(
       "Browser memblokir pemutaran audio. Coba tekan play sekali lagi dan pastikan mode senyap atau pembatas autoplay tidak aktif.";
   } else if (domErrorName === "NotSupportedError" || mediaErrorCode === 4) {
     description =
-      "Format audio tidak didukung atau file audio tidak bisa dibaca di perangkat ini.";
+      "Format audio tidak didukung atau file audio tidak ditemukan di server. Pastikan file sudah diupload melalui panel admin.";
   } else if (mediaErrorCode === 2) {
     description =
       "Audio gagal dimuat dari server. Kemungkinan koneksi tidak stabil atau file tidak bisa diakses.";
@@ -223,7 +223,6 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
       const errorKey = [
         track?.id ?? "unknown",
         audio.currentSrc || track?.url || "no-src",
-        domErrorName ?? "no-dom-error",
         mediaErrorCode ?? "no-media-error",
       ].join("|");
 
@@ -341,7 +340,7 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
         if (!retried) {
           retried = true;
           audio.load();
-          void attemptPlayback(audio, track, "media-error-retry", true);
+          void attemptPlayback(audio, track, "media-error-retry", false);
           return;
         }
 

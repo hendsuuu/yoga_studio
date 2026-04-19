@@ -38,7 +38,7 @@ export async function GET(
   try {
     const fileStat = await stat(filePath);
     if (!fileStat.isFile()) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
+      return new NextResponse(null, { status: 404 });
     }
 
     const ext = path.extname(filename).toLowerCase();
@@ -48,6 +48,19 @@ export async function GET(
     const cacheControl = isVersionedAudioRequest(filename, searchParams)
       ? "public, max-age=31536000, immutable"
       : "public, max-age=0, must-revalidate";
+
+    // HEAD request support — allows clients to verify file existence
+    if (req.method === "HEAD") {
+      return new NextResponse(null, {
+        headers: {
+          "Content-Type": contentType,
+          "Content-Length": fileSize.toString(),
+          "Accept-Ranges": "bytes",
+          "Cache-Control": cacheControl,
+          "Last-Modified": lastModified,
+        },
+      });
+    }
 
     const rangeHeader = req.headers.get("range");
 
@@ -114,6 +127,8 @@ export async function GET(
       },
     });
   } catch {
-    return NextResponse.json({ error: "File not found" }, { status: 404 });
+    return new NextResponse(null, { status: 404 });
   }
 }
+
+export const HEAD = GET;
