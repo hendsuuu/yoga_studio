@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { LogOut, User, Clock, Shield, Headset } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -14,6 +15,7 @@ interface HeaderProps {
 
 export function MemberHeader({ member }: HeaderProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [showProfile, setShowProfile] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -37,8 +39,9 @@ export function MemberHeader({ member }: HeaderProps) {
   async function handleLogout() {
     setLoading(true);
     await fetch("/api/auth/logout", { method: "POST" });
+    queryClient.clear();
     toast.success("Logout berhasil");
-    router.push("/login");
+    router.replace("/login");
     router.refresh();
   }
 

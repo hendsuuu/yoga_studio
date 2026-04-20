@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { verifyPassword } from "@/lib/auth/password";
-import { createToken, setAdminCookie } from "@/lib/auth/session";
+import {
+  clearAdminCookie,
+  clearMemberCookie,
+  createToken,
+  setAdminCookie,
+} from "@/lib/auth/session";
 import { loginSchema } from "@/lib/validators/auth";
 import { cookies } from "next/headers";
 import { logger } from "@/lib/logger";
@@ -40,6 +45,8 @@ export async function POST(req: Request) {
 
     const token = await createToken({ id: admin.id, role: "admin" });
     const cookieStore = await cookies();
+    cookieStore.set(clearMemberCookie());
+    cookieStore.set(clearAdminCookie());
     cookieStore.set(setAdminCookie(token));
 
     logger.info("admin/auth/login", "Admin login success", { email });
