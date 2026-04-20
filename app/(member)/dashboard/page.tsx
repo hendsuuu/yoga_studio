@@ -1,165 +1,121 @@
-"use client";
+import { redirect } from "next/navigation";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { Clock, Search, Calendar as CalendarIcon } from "lucide-react";
+import { DashboardClient } from "@/components/member/dashboard-client";
+import { type TabKey } from "@/components/member/nav-bar";
+import { getCurrentMemberSession } from "@/lib/auth/member-session";
+import { prisma } from "@/lib/db/prisma";
+import type { Recording, Schedule } from "@/types";
 
-import { useMemberSession } from "@/hooks/use-member-session";
-import { useSchedules } from "@/hooks/use-schedules";
-import { useRecordings } from "@/hooks/use-recordings";
-import { useAnnouncements } from "@/hooks/use-announcements";
+type DashboardPageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
 
-import { Loader } from "@/components/ui/loader";
-import { EmptyState } from "@/components/ui/empty-state";
-import { MemberHeader } from "@/components/member/header";
-import { NavBar, type TabKey } from "@/components/member/nav-bar";
-import { ScheduleCard } from "@/components/member/schedule-card";
-import { RecordingCard } from "@/components/member/recording-card";
-import { AnnouncementBar } from "@/components/member/announcement-bar";
-import { TabMeditation } from "@/components/member/tab-meditation";
-import { TabLibrary } from "@/components/member/tab-library";
-import { TabGuide } from "@/components/member/tab-guide";
-import { TabRelax } from "@/components/member/tab-relax";
-import { FloatingPlayer } from "@/components/member/floating-player";
+const VALID_TABS: TabKey[] = [
+  "schedule",
+  "recordings",
+  "meditation",
+  "relax",
+  "library",
+  "guide",
+];
 
-import { formatHumanDate, daysUntil } from "@/lib/utils";
+function getSingleParam(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
 
-export default function DashboardPage() {
-  const router = useRouter();
-  const [activeTab, setActiveTab] = useState<TabKey | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
+function normalizeTab(rawTab: string | undefined, fallbackTab: TabKey): TabKey {
+  if (rawTab && VALID_TABS.includes(rawTab as TabKey)) {
+    return rawTab as TabKey;
+  }
 
-  const { data: member, isLoading: memberLoading } = useMemberSession();
-  const { data: schedules, isLoading: schedulesLoading } = useSchedules();
-  const { data: recordings, isLoading: recordingsLoading } = useRecordings();
-  const { data: announcements } = useAnnouncements();
+  return fallbackTab;
+}
 
-  useEffect(() => {
-    if (member && !member.isActive) {
-      router.replace("/profile");
-    }
-  }, [member, router]);
+function normalizeRecordingDate(rawDate: string | undefined) {
+  if (!rawDate) {
+    return "";
+  }
 
-  // Set default tab based on tier
-  useEffect(() => {
-    if (member && activeTab === null) {
-      setActiveTab(member.tier === "FREE" ? "relax" : "schedule");
-    }
-  }, [member, activeTab]);
+  return /^\d{4}-\d{2}-\d{2}$/.test(rawDate) ? rawDate : "";
+}
 
-  if (memberLoading)
-    return <Loader fullScreen message="Menyiapkan Ruang Tenang..." />;
-  if (!member || !member.isActive)
-    return <Loader fullScreen message="Mengarahkan..." />;
+function createRecordingDateRange(date: string) {
+  return {
+    gte: new Date(`${date}T00:00:00.000Z`),
+    lte: new Date(`${date}T23:59:59.999Z`),
+  };
+}
 
-  const isFree = member.tier === "FREE";
-  const filteredRecordings = (recordings || []).filter((r) =>
-    r.title.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+export default async function DashboardPage({
+  searchParams,
+}: DashboardPageProps) {
+  const params = await searchParams;
+  const member = await getCurrentMemberSession();
+
+  if (!member) {
+    redirect("/login");
+  }
+
+  if (!member.isActive) {
+    redirect("/profile");
+  }
+
+  const defaultTab: TabKey = member.tier === "FREE" ? "relax" : "schedule";
+  const activeTab = normalizeTab(getSingleParam(params.tab), defaultTab);
+  const searchQuery = getSingleParam(params.q)?.trim() ?? "";
+  const recordingDate = normalizeRecordingDate(getSingleParam(params.date));
+
+  const [announcements, schedules, recordings] = await Promise.all([
+    prisma.announcement.findMany({
+      where: { isActive: true },
+      orderBy: { createdAt: "desc" },
+    }),
+    activeTab === "schedule"
+      ? prisma.schedule.findMany({
+          where: { isActive: true },
+          orderBy: { date: "asc" },
+        }).then<Schedule[]>((items) =>
+          items.map((item) => ({
+            ...item,
+            date: item.date.toISOString(),
+          })),
+        )
+      : Promise.resolve<Schedule[]>([]),
+    activeTab === "recordings"
+      ? prisma.recording.findMany({
+          where: {
+            isPublished: true,
+            ...(searchQuery
+              ? {
+                  title: {
+                    contains: searchQuery,
+                    mode: "insensitive",
+                  },
+                }
+              : {}),
+            ...(recordingDate
+              ? { date: createRecordingDateRange(recordingDate) }
+              : {}),
+          },
+          orderBy: { date: "desc" },
+        }).then<Recording[]>((items) =>
+          items.map((item) => ({
+            ...item,
+            date: item.date.toISOString(),
+          })),
+        )
+      : Promise.resolve<Recording[]>([]),
+  ]);
 
   return (
-    <div className="min-h-screen bg-gray-50 relative">
-      <MemberHeader member={member} />
-
-      <main className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 pt-4 pb-24 space-y-4 overflow-y-auto no-scrollbar">
-        {/* Membership info */}
-        {member.membershipExpiresAt && (
-          <div className="flex gap-2">
-            <div className="flex-1 bg-rose-bg rounded-xl p-3 border border-white flex items-center gap-2.5 shadow-sm">
-              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-primary shadow-sm">
-                <Clock className="w-4 h-4" />
-              </div>
-              <div>
-                <span className="text-[10px] font-bold text-primary uppercase opacity-60">
-                  Masa Aktif
-                </span>
-                <p className="text-xs font-bold text-secondary">
-                  {formatHumanDate(member.membershipExpiresAt)}
-                </p>
-              </div>
-            </div>
-            <div className="bg-white rounded-xl p-3 border border-gray-100 shadow-sm flex items-center px-4">
-              <p className="text-xs font-bold text-primary whitespace-nowrap">
-                {daysUntil(member.membershipExpiresAt)} HARI
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Announcements */}
-        {announcements?.map((a) => (
-          <AnnouncementBar key={a.id} message={a.message} />
-        ))}
-
-        {/* Tab Content */}
-        <div className="space-y-4 animate-in">
-          {activeTab === "schedule" && (
-            <>
-              {schedulesLoading ? (
-                <Loader message="Memuat jadwal..." />
-              ) : (schedules || []).length === 0 ? (
-                <EmptyState
-                  icon={<CalendarIcon className="w-10 h-10" />}
-                  title="Belum ada jadwal"
-                  description="Jadwal kelas akan muncul di sini"
-                />
-              ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                  {schedules!.map((s) => (
-                    <ScheduleCard key={s.id} schedule={s} />
-                  ))}
-                </div>
-              )}
-            </>
-          )}
-
-          {activeTab === "recordings" && (
-            <div className="space-y-4">
-              <div className="relative max-w-6xl mx-auto">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-300" />
-                <input
-                  type="text"
-                  placeholder="Cari rekaman..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-white border border-gray-200 rounded-lg py-2.5 pl-9 pr-3 text-xs outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/10 transition-all"
-                />
-              </div>
-              {recordingsLoading ? (
-                <Loader message="Memuat rekaman..." />
-              ) : filteredRecordings.length === 0 ? (
-                <EmptyState
-                  icon={<Search className="w-12 h-12" />}
-                  title="Tidak ada rekaman"
-                  description={
-                    searchQuery
-                      ? "Coba kata kunci lain"
-                      : "Rekaman akan muncul di sini"
-                  }
-                />
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {filteredRecordings.map((r) => (
-                    <RecordingCard key={r.id} recording={r} />
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {activeTab === "meditation" && <TabMeditation />}
-          {activeTab === "relax" && <TabRelax />}
-          {activeTab === "library" && <TabLibrary />}
-          {activeTab === "guide" && <TabGuide />}
-        </div>
-      </main>
-
-      <FloatingPlayer />
-      <NavBar
-        active={activeTab || "relax"}
-        onChange={setActiveTab}
-        isFree={isFree}
-      />
-    </div>
+    <DashboardClient
+      activeTab={activeTab}
+      announcements={announcements}
+      initialRecordingDate={recordingDate}
+      initialSearchQuery={searchQuery}
+      member={member}
+      recordings={recordings}
+      schedules={schedules}
+    />
   );
 }

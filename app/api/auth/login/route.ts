@@ -3,6 +3,8 @@ import { prisma } from "@/lib/db/prisma";
 import { verifyPassword } from "@/lib/auth/password";
 import {
   createToken,
+  clearAdminCookie,
+  clearMemberCookie,
   setMemberCookie,
   setAdminCookie,
 } from "@/lib/auth/session";
@@ -62,6 +64,8 @@ export async function POST(req: Request) {
     }
 
     const cookieStore = await cookies();
+    cookieStore.set(clearMemberCookie());
+    cookieStore.set(clearAdminCookie());
 
     if (user.role === "ADMIN") {
       const token = await createToken({ id: user.id, role: "admin" });

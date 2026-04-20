@@ -77,3 +77,19 @@ export function setAdminCookie(token: string) {
     maxAge: 60 * 60 * 24 * 7,
   };
 }
+
+export function clearMemberCookie() {
+  return {
+    ...setMemberCookie(""),
+    value: "",
+    maxAge: 0,
+  };
+}
+
+export function clearAdminCookie() {
+  return {
+    ...setAdminCookie(""),
+    value: "",
+    maxAge: 0,
+  };
+}

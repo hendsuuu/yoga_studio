@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
@@ -33,6 +34,7 @@ const links = [
 export function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { collapsed, setCollapsed, mobileOpen, setMobileOpen } = useSidebar();
   const [logoutConfirm, setLogoutConfirm] = useState(false);
   const [logoutLoading, setLogoutLoading] = useState(false);
@@ -40,8 +42,9 @@ export function AdminSidebar() {
   async function handleLogout() {
     setLogoutLoading(true);
     await fetch("/api/admin/auth/logout", { method: "POST" });
+    queryClient.clear();
     toast.success("Logout berhasil");
-    router.push("/login");
+    router.replace("/login");
     router.refresh();
   }
 

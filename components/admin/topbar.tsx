@@ -11,10 +11,13 @@ export function AdminTopbar() {
   const { data: profile } = useQuery<AdminProfile>({
     queryKey: ["admin", "profile"],
     queryFn: async () => {
-      const res = await fetch("/api/admin/profile");
+      const res = await fetch("/api/admin/profile", { cache: "no-store" });
       if (!res.ok) throw new Error("Failed");
       return res.json();
     },
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: "always",
   });
 
   return (
