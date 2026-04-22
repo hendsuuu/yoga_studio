@@ -32,6 +32,23 @@ const emptyForm = {
   category: "relaxation" as MusicTrack["category"],
 };
 
+function getAudioFileLabel(url: string) {
+  if (!url) return "";
+
+  try {
+    const pathname = new URL(url, "http://local").pathname;
+    const rawFilename = decodeURIComponent(
+      pathname.split("/").filter(Boolean).at(-1) ?? "",
+    );
+
+    if (!rawFilename) return "";
+
+    return rawFilename.replace(/--[0-9a-f]{12,64}(?=\.[^.]+$)/i, "");
+  } catch {
+    return "";
+  }
+}
+
 export default function AdminMusicPage() {
   const { data: tracks, isLoading } = useAdminMusic();
   const createMusic = useCreateMusic();
@@ -44,10 +61,12 @@ export default function AdminMusicPage() {
   const [showForm, setShowForm] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadedFileName, setUploadedFileName] = useState("");
 
   function openCreate() {
     setForm(emptyForm);
     setEditingId(null);
+    setUploadedFileName("");
     setShowForm(true);
   }
 
@@ -60,6 +79,7 @@ export default function AdminMusicPage() {
       category: t.category,
     });
     setEditingId(t.id);
+    setUploadedFileName(getAudioFileLabel(t.url));
     setShowForm(true);
   }
 
@@ -117,15 +137,22 @@ export default function AdminMusicPage() {
         duration: detectedDuration,
         title: prev.title || file.name.replace(/\.[^/.]+$/, ""),
       }));
+      setUploadedFileName(file.name);
       toast.success("File berhasil diupload");
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Gagal mengupload file");
     } finally {
       setUploading(false);
+      e.target.value = "";
     }
   }
 
   async function handleSubmit() {
+    if (!form.url) {
+      toast.error("Silakan upload file audio terlebih dahulu");
+      return;
+    }
+
     try {
       if (editingId) {
         await updateMusic.mutateAsync({ id: editingId, data: form });
@@ -284,24 +311,35 @@ export default function AdminMusicPage() {
             <label className="text-xs font-semibold text-secondary mb-1.5 block">
               File Audio
             </label>
-            <div className="flex gap-2">
-              <Input
-                placeholder="URL atau upload file"
-                value={form.url}
-                onChange={(e) => setForm({ ...form, url: e.target.value })}
-                className="flex-1"
-              />
-              <label className="shrink-0 cursor-pointer">
+            <div className="flex flex-col gap-3 rounded-2xl border border-dashed border-gray-200 bg-gray-50/70 p-4">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-primary shadow-sm">
+                  <Music className="w-4 h-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-secondary">
+                    {uploadedFileName || "Belum ada file yang dipilih"}
+                  </p>
+                  <p className="mt-1 text-xs text-gray-500">
+                    {uploadedFileName
+                      ? "File audio siap dipakai untuk music player member."
+                      : "Pilih file audio dari perangkat Anda. Format audio umum didukung, maksimal 50MB."}
+                  </p>
+                </div>
+              </div>
+              <label className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-medium text-gray-600 shadow-sm ring-1 ring-gray-200 transition-colors hover:bg-gray-100">
                 <input
                   type="file"
                   accept="audio/*"
                   className="hidden"
                   onChange={handleFileUpload}
                 />
-                <div className="px-4 py-3 bg-gray-100 rounded-xl text-gray-500 hover:bg-gray-200 transition-colors flex items-center gap-1.5 text-sm">
-                  <Upload className="w-4 h-4" />
-                  {uploading ? "..." : "Upload"}
-                </div>
+                <Upload className="w-4 h-4" />
+                {uploading
+                  ? "Mengupload..."
+                  : uploadedFileName
+                    ? "Ganti File"
+                    : "Pilih File"}
               </label>
             </div>
           </div>

@@ -26,6 +26,8 @@ export async function PUT(
   const normalizedUrl = body.url
     ? await normalizeAudioUrl(body.url)
     : existing.url;
+  const previousAudioFilename = extractAudioFilenameFromUrl(existing.url);
+  const nextAudioFilename = extractAudioFilenameFromUrl(normalizedUrl);
 
   const updated = await prisma.musicTrack.update({
     where: { id },
@@ -38,9 +40,32 @@ export async function PUT(
     },
   });
 
+  let deletedReplacedAudioFile = false;
+
+  if (
+    previousAudioFilename &&
+    previousAudioFilename !== nextAudioFilename
+  ) {
+    const otherTracks = await prisma.musicTrack.findMany({
+      where: { id: { not: id } },
+      select: { url: true },
+    });
+
+    const isStillReferenced = otherTracks.some(
+      (track) =>
+        extractAudioFilenameFromUrl(track.url) === previousAudioFilename,
+    );
+
+    if (!isStillReferenced) {
+      deletedReplacedAudioFile =
+        await deleteInternalAudioFile(previousAudioFilename);
+    }
+  }
+
   return NextResponse.json({
     ...updated,
     url: normalizedUrl,
+    deletedReplacedAudioFile,
   });
 }
 

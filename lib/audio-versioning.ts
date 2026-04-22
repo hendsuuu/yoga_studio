@@ -1,6 +1,10 @@
 import { createHash } from "crypto";
 import { stat, unlink } from "fs/promises";
 import path from "path";
+import {
+  deleteAudioFromSupabase,
+  isSupabaseAudioStorageConfigError,
+} from "@/lib/audio-storage";
 
 const AUDIO_DIR =
   process.env.AUDIO_DIR || path.join(process.cwd(), "public", "audio");
@@ -100,9 +104,19 @@ async function getAudioFileVersion(filename: string) {
 }
 
 export async function deleteInternalAudioFile(filename: string) {
+  let deletedFromSupabase = false;
+
+  try {
+    deletedFromSupabase = await deleteAudioFromSupabase(filename);
+  } catch (error) {
+    if (!isSupabaseAudioStorageConfigError(error)) {
+      throw error;
+    }
+  }
+
   const filePath = resolveAudioFilePath(filename);
   if (!filePath) {
-    return false;
+    return deletedFromSupabase;
   }
 
   try {
@@ -115,7 +129,7 @@ export async function deleteInternalAudioFile(filename: string) {
       "code" in error &&
       error.code === "ENOENT"
     ) {
-      return false;
+      return deletedFromSupabase;
     }
 
     throw error;

@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth/session";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
 import { createVersionedAudioFilename } from "@/lib/audio-versioning";
-
-const AUDIO_DIR =
-  process.env.AUDIO_DIR || path.join(process.cwd(), "public", "audio");
+import {
+  buildManagedAudioUrl,
+  isSupabaseAudioStorageConfigError,
+  uploadAudioToSupabase,
+} from "@/lib/audio-storage";
 
 export async function POST(req: Request) {
   const session = await getAdminSession();
@@ -36,10 +36,24 @@ export async function POST(req: Request) {
     );
   }
 
-  await mkdir(AUDIO_DIR, { recursive: true });
   const buffer = Buffer.from(await file.arrayBuffer());
   const safeName = createVersionedAudioFilename(file.name, buffer);
-  await writeFile(path.join(AUDIO_DIR, safeName), buffer);
 
-  return NextResponse.json({ url: `/api/audio/${safeName}` });
+  try {
+    await uploadAudioToSupabase({
+      filename: safeName,
+      buffer,
+      contentType: file.type || "application/octet-stream",
+    });
+  } catch (error) {
+    const message = isSupabaseAudioStorageConfigError(error)
+      ? "Supabase storage audio belum dikonfigurasi"
+      : error instanceof Error
+        ? error.message
+        : "Gagal mengupload audio";
+
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+
+  return NextResponse.json({ url: buildManagedAudioUrl(safeName) });
 }
