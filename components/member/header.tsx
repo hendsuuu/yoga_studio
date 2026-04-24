@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { LogOut, User, Clock, Shield, Headset } from "lucide-react";
+import { LogOut, User, Clock, Shield, Headset, BookOpen } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { toast } from "sonner";
@@ -183,6 +183,15 @@ export function MemberHeader({ member }: HeaderProps) {
                     className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-gray-600 hover:bg-gray-50 transition-all">
                     <Headset className="w-3.5 h-3.5" />
                     <span className="text-xs font-medium">Support</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowProfile(false);
+                      router.push("/guide");
+                    }}
+                    className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-gray-600 hover:bg-gray-50 transition-all">
+                    <BookOpen className="w-3.5 h-3.5" />
+                    <span className="text-xs font-medium">Panduan</span>
                   </button>
                   <button
                     onClick={() => {
