@@ -35,8 +35,25 @@ model User {
     aiUsageLogs         AiUsageLog[]
     pushSubscriptions   PushSubscription[]
     scheduleReminders   ScheduleReminder[]
+    claimedEntitlements PendingEntitlement[]
 
     @@map("users")
+}
+
+model PendingEntitlement {
+    id                  String    @id @default(cuid())
+    email               String
+    source              String    @default("scalev")
+    orderId             String?   @unique
+    membershipExpiresAt DateTime
+    claimedAt           DateTime?
+    claimedByUserId     String?
+    claimedBy           User?     @relation(fields: [claimedByUserId], references: [id], onDelete: SetNull)
+    createdAt           DateTime  @default(now())
+    updatedAt           DateTime  @updatedAt
+
+    @@index([email, claimedAt])
+    @@map("pending_entitlements")
 }
 
 model Coach {
