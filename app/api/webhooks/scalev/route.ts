@@ -1,4 +1,4 @@
-import { createHmac, timingSafeEqual } from "crypto";
+import { timingSafeEqual } from "crypto";
 
 import { NextResponse } from "next/server";
 
@@ -22,14 +22,6 @@ import {
 
 const CONTEXT = "webhooks/scalev";
 
-function getBearerToken(authorization: string | null) {
-  if (!authorization?.startsWith("Bearer ")) {
-    return null;
-  }
-
-  return authorization.slice("Bearer ".length).trim();
-}
-
 function safeCompare(leftValue: string, rightValue: string) {
   const left = Buffer.from(leftValue);
   const right = Buffer.from(rightValue);
@@ -41,11 +33,67 @@ function safeCompare(leftValue: string, rightValue: string) {
   return timingSafeEqual(left, right);
 }
 
-function createScalevSignature(rawBody: string, signingSecret: string) {
-  return createHmac("sha256", signingSecret).update(rawBody).digest("base64");
+function getRequestLogMeta(req: Request) {
+  const url = new URL(req.url);
+
+  return {
+    method: req.method,
+    hasQuerySecret: url.searchParams.has("secret"),
+  };
 }
 
-function isValidSecret(req: Request, rawBody: string) {
+function getStringRecord(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  return value as Record<string, unknown>;
+}
+
+function getOrderStatusForLog(payload: unknown) {
+  const rootPayload = getStringRecord(payload);
+  const dataPayload = getStringRecord(rootPayload?.data);
+  const orderPayload = dataPayload ?? rootPayload;
+  const status = orderPayload?.status;
+
+  return typeof status === "string" ? status : null;
+}
+
+function getWebhookPayloadLogMeta(
+  req: Request,
+  payload: unknown,
+  rawBodyLength: number,
+) {
+  const parsedPayload = scalevSubscriptionWebhookSchema.safeParse(payload);
+
+  if (!parsedPayload.success) {
+    const rootPayload = getStringRecord(payload);
+
+    return {
+      ...getRequestLogMeta(req),
+      event: typeof rootPayload?.event === "string" ? rootPayload.event : null,
+      paymentStatus: null,
+      orderStatus: getOrderStatusForLog(payload),
+      orderId: null,
+      customerEmail: null,
+      rawBodyLength,
+    };
+  }
+
+  const customerEmail = getScalevWebhookEmail(parsedPayload.data) || null;
+
+  return {
+    ...getRequestLogMeta(req),
+    event: parsedPayload.data.event ?? null,
+    paymentStatus: getScalevWebhookPaymentStatus(parsedPayload.data),
+    orderStatus: getOrderStatusForLog(parsedPayload.data),
+    orderId: getScalevWebhookOrderId(parsedPayload.data),
+    customerEmail,
+    rawBodyLength,
+  };
+}
+
+function isValidSecret(req: Request) {
   const configuredSecret = process.env.SCALEV_WEBHOOK_SECRET;
 
   if (!configuredSecret) {
@@ -53,22 +101,12 @@ function isValidSecret(req: Request, rawBody: string) {
     return false;
   }
 
-  const scalevSignature = req.headers.get("x-scalev-hmac-sha256");
-
-  if (scalevSignature) {
-    return safeCompare(
-      createScalevSignature(rawBody, configuredSecret),
-      scalevSignature,
-    );
-  }
-
-  const providedSecret =
-    getBearerToken(req.headers.get("authorization")) ||
-    req.headers.get("x-scalev-webhook-secret") ||
-    req.headers.get("x-webhook-secret") ||
-    new URL(req.url).searchParams.get("secret");
+  const providedSecret = new URL(req.url).searchParams.get("secret");
 
   if (!providedSecret) {
+    logger.warn(CONTEXT, "Missing webhook secret query parameter", {
+      ...getRequestLogMeta(req),
+    });
     return false;
   }
 
@@ -78,10 +116,31 @@ function isValidSecret(req: Request, rawBody: string) {
 export async function POST(req: Request) {
   try {
     const rawBody = await req.text();
+    const rawBodyLength = Buffer.byteLength(rawBody, "utf8");
 
-    if (!isValidSecret(req, rawBody)) {
-      logger.warn(CONTEXT, "Unauthorized webhook request");
+    logger.info(CONTEXT, "Webhook request received", {
+      ...getRequestLogMeta(req),
+      rawBodyLength,
+    });
+
+    if (!isValidSecret(req)) {
+      logger.warn(CONTEXT, "Unauthorized webhook request", {
+        ...getRequestLogMeta(req),
+      });
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    if (!rawBody.trim()) {
+      logger.info(CONTEXT, "Webhook ignored because payload is empty", {
+        ...getRequestLogMeta(req),
+        rawBodyLength,
+      });
+
+      return NextResponse.json({
+        success: true,
+        ignored: true,
+        reason: "empty_payload",
+      });
     }
 
     let body: unknown;
@@ -89,27 +148,40 @@ export async function POST(req: Request) {
     try {
       body = JSON.parse(rawBody);
     } catch {
-      logger.warn(CONTEXT, "Invalid JSON payload");
-      return NextResponse.json(
-        { error: "Payload JSON tidak valid" },
-        { status: 400 },
-      );
+      logger.warn(CONTEXT, "Webhook ignored because payload JSON is invalid", {
+        ...getRequestLogMeta(req),
+        rawBodyLength,
+      });
+
+      return NextResponse.json({
+        success: true,
+        ignored: true,
+        reason: "invalid_json",
+      });
     }
 
     const parsed = scalevSubscriptionWebhookSchema.safeParse(body);
 
     if (!parsed.success) {
-      logger.warn(CONTEXT, "Invalid payload", {
+      logger.warn(CONTEXT, "Webhook ignored because payload is invalid", {
+        ...getWebhookPayloadLogMeta(req, body, rawBodyLength),
         errors: parsed.error.errors,
       });
-      return NextResponse.json(
-        { error: parsed.error.errors[0].message },
-        { status: 400 },
-      );
+
+      return NextResponse.json({
+        success: true,
+        ignored: true,
+        reason: "invalid_payload",
+      });
     }
+
+    logger.info(CONTEXT, "Webhook payload received", {
+      ...getWebhookPayloadLogMeta(req, parsed.data, rawBodyLength),
+    });
 
     if (parsed.data.event && parsed.data.event !== "order.updated") {
       logger.info(CONTEXT, "Webhook ignored because event is unsupported", {
+        ...getWebhookPayloadLogMeta(req, parsed.data, rawBodyLength),
         event: parsed.data.event,
         orderId: getScalevWebhookOrderId(parsed.data),
       });
@@ -123,6 +195,7 @@ export async function POST(req: Request) {
 
     if (isSpamScalevWebhook(parsed.data)) {
       logger.info(CONTEXT, "Webhook ignored because order is spam", {
+        ...getWebhookPayloadLogMeta(req, parsed.data, rawBodyLength),
         event: parsed.data.event,
         orderId: getScalevWebhookOrderId(parsed.data),
         email: getScalevWebhookEmail(parsed.data),
@@ -137,6 +210,7 @@ export async function POST(req: Request) {
 
     if (!isPaidScalevWebhook(parsed.data)) {
       logger.info(CONTEXT, "Webhook ignored because payment is not paid", {
+        ...getWebhookPayloadLogMeta(req, parsed.data, rawBodyLength),
         event: parsed.data.event,
         paymentStatus: getScalevWebhookPaymentStatus(parsed.data),
         orderId: getScalevWebhookOrderId(parsed.data),
@@ -155,19 +229,17 @@ export async function POST(req: Request) {
 
     if (!email) {
       logger.warn(CONTEXT, "Customer email not found in paid webhook payload", {
+        ...getWebhookPayloadLogMeta(req, parsed.data, rawBodyLength),
         event: parsed.data.event,
         paymentStatus: getScalevWebhookPaymentStatus(parsed.data),
         orderId: getScalevWebhookOrderId(parsed.data),
       });
 
-      return NextResponse.json(
-        {
-          error:
-            "Email customer tidak ditemukan di payload Scalev. Gunakan event order.updated/order.created atau fetch order detail dari Scalev berdasarkan order_id.",
-          reason: "customer_email_missing",
-        },
-        { status: 422 },
-      );
+      return NextResponse.json({
+        success: true,
+        ignored: true,
+        reason: "customer_email_missing",
+      });
     }
 
     const member = await prisma.user.findUnique({
@@ -218,15 +290,17 @@ export async function POST(req: Request) {
 
     if (member.role !== "MEMBER") {
       logger.warn(CONTEXT, "Webhook email belongs to non-member user", {
+        ...getWebhookPayloadLogMeta(req, parsed.data, rawBodyLength),
         email,
         role: member.role,
         orderId,
       });
 
-      return NextResponse.json(
-        { error: "Email bukan akun member" },
-        { status: 409 },
-      );
+      return NextResponse.json({
+        success: true,
+        ignored: true,
+        reason: "email_is_not_member",
+      });
     }
 
     const updatedMember = await prisma.user.update({
