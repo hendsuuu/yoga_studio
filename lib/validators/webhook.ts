@@ -9,6 +9,7 @@ const scalevOrderPayloadSchema = z
   .object({
     id: z.union([z.string(), z.number()]).optional(),
     order_id: z.string().optional(),
+    status: z.string().optional(),
     payment_status: z.string().optional(),
     paid_time: z.string().nullable().optional(),
     settled_time: z.string().nullable().optional(),
@@ -61,6 +62,13 @@ export type ScalevSubscriptionWebhookInput = z.infer<
   typeof scalevSubscriptionWebhookSchema
 >;
 
+const PAID_SCALEV_STATUSES = new Set([
+  "paid",
+  "success",
+  "completed",
+  "settled",
+]);
+
 function getOrderPayload(payload: ScalevSubscriptionWebhookInput) {
   return payload.data ?? payload;
 }
@@ -100,6 +108,7 @@ export function isPaidScalevWebhook(payload: ScalevSubscriptionWebhookInput) {
     payload.event ||
       payload.data ||
       orderPayload.payment_status ||
+      orderPayload.status ||
       orderPayload.paid_time ||
       orderPayload.settled_time,
   );
@@ -109,10 +118,11 @@ export function isPaidScalevWebhook(payload: ScalevSubscriptionWebhookInput) {
   }
 
   const paymentStatus = orderPayload.payment_status?.toLowerCase();
+  const orderStatus = orderPayload.status?.toLowerCase();
 
   return (
-    paymentStatus === "paid" ||
-    paymentStatus === "settled" ||
+    Boolean(paymentStatus && PAID_SCALEV_STATUSES.has(paymentStatus)) ||
+    Boolean(orderStatus && PAID_SCALEV_STATUSES.has(orderStatus)) ||
     Boolean(orderPayload.paid_time || orderPayload.settled_time)
   );
 }
