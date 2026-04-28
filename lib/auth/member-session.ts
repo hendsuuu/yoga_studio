@@ -4,6 +4,8 @@ import { getMemberSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/prisma";
 import type { MemberSession } from "@/types";
 
+const FREE_AI_DAILY_LIMIT = 6;
+
 export async function getCurrentMemberSession(): Promise<MemberSession | null> {
   const session = await getMemberSession();
   if (!session) {
@@ -30,16 +32,23 @@ export async function getCurrentMemberSession(): Promise<MemberSession | null> {
     return null;
   }
 
-  if (
-    member.isActive &&
+  const membershipExpired =
     member.membershipExpiresAt &&
-    new Date(member.membershipExpiresAt) < new Date()
-  ) {
+    new Date(member.membershipExpiresAt) < new Date();
+
+  if (membershipExpired && member.tier === "PREMIUM") {
     await prisma.user.update({
       where: { id: member.id },
-      data: { isActive: false },
+      data: {
+        tier: "FREE",
+        aiDailyLimitMax: FREE_AI_DAILY_LIMIT,
+        membershipExpiresAt: null,
+      },
     });
-    member.isActive = false;
+
+    member.tier = "FREE";
+    member.aiDailyLimitMax = FREE_AI_DAILY_LIMIT;
+    member.membershipExpiresAt = null;
   }
 
   const today = startOfDay(new Date());
