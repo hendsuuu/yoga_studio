@@ -65,18 +65,33 @@ function getOrderPayload(payload: ScalevSubscriptionWebhookInput) {
   return payload.data ?? payload;
 }
 
+function normalizeEmail(email: string | null | undefined) {
+  return (email ?? "").toLowerCase().trim();
+}
+
+function getPaymentStatusHistoryEmail(
+  payload: ScalevSubscriptionWebhookInput,
+) {
+  const history = getOrderPayload(payload).payment_status_history ?? [];
+  const reversedHistory = [...history].reverse();
+  const paidHistory = reversedHistory.find(
+    (item) => item.status?.toLowerCase() === "paid" && item.by?.email,
+  );
+  const latestHistoryWithEmail = reversedHistory.find((item) => item.by?.email);
+
+  return paidHistory?.by?.email ?? latestHistoryWithEmail?.by?.email ?? "";
+}
+
 export function getScalevWebhookEmail(payload: ScalevSubscriptionWebhookInput) {
   const orderPayload = getOrderPayload(payload);
 
-  return (
+  return normalizeEmail(
     payload.email ??
-    orderPayload.destination_address?.email ??
-    orderPayload.customer_email ??
-    orderPayload.customer?.email ??
-    ""
-  )
-    .toLowerCase()
-    .trim();
+      orderPayload.destination_address?.email ??
+      orderPayload.customer_email ??
+      orderPayload.customer?.email ??
+      getPaymentStatusHistoryEmail(payload),
+  );
 }
 
 export function isPaidScalevWebhook(payload: ScalevSubscriptionWebhookInput) {
