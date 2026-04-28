@@ -21,6 +21,10 @@ import {
 } from "@/lib/validators/webhook";
 
 const CONTEXT = "webhooks/scalev";
+const SUPPORTED_SCALEV_EVENTS = new Set([
+  "order.updated",
+  "order.payment_status_changed",
+]);
 
 function safeCompare(leftValue: string, rightValue: string) {
   const left = Buffer.from(leftValue);
@@ -179,7 +183,10 @@ export async function POST(req: Request) {
       ...getWebhookPayloadLogMeta(req, parsed.data, rawBodyLength),
     });
 
-    if (parsed.data.event && parsed.data.event !== "order.updated") {
+    if (
+      parsed.data.event &&
+      !SUPPORTED_SCALEV_EVENTS.has(parsed.data.event)
+    ) {
       logger.info(CONTEXT, "Webhook ignored because event is unsupported", {
         ...getWebhookPayloadLogMeta(req, parsed.data, rawBodyLength),
         event: parsed.data.event,
