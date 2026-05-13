@@ -10,9 +10,29 @@ import {
 import { loginSchema } from "@/lib/validators/auth";
 import { cookies } from "next/headers";
 import { logger } from "@/lib/logger";
+import {
+  consumeToken,
+  getClientIp,
+  rateLimitResponse,
+} from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
   try {
+    const ip = getClientIp(req);
+    const ipLimit = consumeToken({
+      namespace: "admin-login-ip",
+      key: ip,
+      capacity: 12,
+      refillTokens: 1,
+      refillIntervalMs: 45 * 1000,
+    });
+    if (!ipLimit.allowed) {
+      return rateLimitResponse(
+        ipLimit,
+        "Terlalu banyak percobaan login admin. Coba lagi sebentar lagi.",
+      );
+    }
+
     const body = await req.json();
     const parsed = loginSchema.safeParse(body);
 
@@ -27,9 +47,23 @@ export async function POST(req: Request) {
     }
 
     const { email, password } = parsed.data;
+    const normalizedEmail = email.toLowerCase().trim();
+    const accountLimit = consumeToken({
+      namespace: "admin-login-account",
+      key: `${ip}:${normalizedEmail}`,
+      capacity: 5,
+      refillTokens: 1,
+      refillIntervalMs: 2 * 60 * 1000,
+    });
+    if (!accountLimit.allowed) {
+      return rateLimitResponse(
+        accountLimit,
+        "Percobaan login admin untuk akun ini terlalu sering. Tunggu sebentar lalu coba lagi.",
+      );
+    }
 
     const admin = await prisma.user.findFirst({
-      where: { email: email.toLowerCase().trim(), role: "ADMIN" },
+      where: { email: normalizedEmail, role: "ADMIN" },
     });
 
     if (!admin) {

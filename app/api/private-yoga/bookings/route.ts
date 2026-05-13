@@ -1,8 +1,28 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { privateYogaBookingSchema } from "@/lib/validators/admin";
+import {
+  consumeToken,
+  getClientIp,
+  rateLimitResponse,
+} from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
+  const ip = getClientIp(req);
+  const ipLimit = consumeToken({
+    namespace: "private-yoga-booking-ip",
+    key: ip,
+    capacity: 8,
+    refillTokens: 1,
+    refillIntervalMs: 30 * 1000,
+  });
+  if (!ipLimit.allowed) {
+    return rateLimitResponse(
+      ipLimit,
+      "Terlalu banyak percobaan booking. Coba lagi sebentar lagi.",
+    );
+  }
+
   const body = await req.json();
   const parsed = privateYogaBookingSchema.safeParse(body);
   if (!parsed.success) {
@@ -14,6 +34,21 @@ export async function POST(req: Request) {
 
   const { privateYogaId, email, age, gender, experience, healthNotes, ...rest } =
     parsed.data;
+  const normalizedWhatsapp = rest.whatsapp.replace(/\D/g, "");
+
+  const identityLimit = consumeToken({
+    namespace: "private-yoga-booking-identity",
+    key: `${ip}:${privateYogaId}:${normalizedWhatsapp}`,
+    capacity: 3,
+    refillTokens: 1,
+    refillIntervalMs: 5 * 60 * 1000,
+  });
+  if (!identityLimit.allowed) {
+    return rateLimitResponse(
+      identityLimit,
+      "Booking untuk nomor ini terlalu sering. Tunggu beberapa menit lalu coba lagi.",
+    );
+  }
 
   const session = await prisma.privateYoga.findFirst({
     where: {
@@ -36,7 +71,7 @@ export async function POST(req: Request) {
       data: {
         privateYogaId,
         ...rest,
-        whatsapp: rest.whatsapp.replace(/\D/g, ""),
+        whatsapp: normalizedWhatsapp,
         email: email || null,
         age: typeof age === "number" ? age : null,
         gender: gender || null,
