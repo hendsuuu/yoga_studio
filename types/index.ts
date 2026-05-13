@@ -87,10 +87,38 @@ export type Coach = {
   createdAt: string;
 };
 
+export type PrivateYoga = {
+  id: string;
+  title: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  coachId: string;
+  coach: Coach;
+  isActive: boolean;
+  createdAt: string;
+  bookings?: PrivateYogaBooking[];
+};
+
+export type PrivateYogaBooking = {
+  id: string;
+  privateYogaId: string;
+  fullName: string;
+  whatsapp: string;
+  email: string | null;
+  age: number | null;
+  gender: string | null;
+  experience: string | null;
+  goal: string;
+  healthNotes: string | null;
+  createdAt: string;
+};
+
 export type AdminProfile = {
   id: string;
   fullName: string;
   email: string;
+  phone: string;
   role: UserRole;
 };
 

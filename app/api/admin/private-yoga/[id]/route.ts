@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { getAdminSession } from "@/lib/auth/session";
-import { memberUpdateSchema } from "@/lib/validators/admin";
+import { privateYogaUpdateSchema } from "@/lib/validators/admin";
 
 export async function PUT(
   req: Request,
@@ -13,8 +13,7 @@ export async function PUT(
 
   const { id } = await params;
   const body = await req.json();
-  const parsed = memberUpdateSchema.safeParse(body);
-
+  const parsed = privateYogaUpdateSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
       { error: parsed.error.errors[0].message },
@@ -22,23 +21,33 @@ export async function PUT(
     );
   }
 
+  if (parsed.data.coachId) {
+    const coach = await prisma.coach.findFirst({
+      where: { id: parsed.data.coachId, isActive: true },
+      select: { id: true },
+    });
+    if (!coach) {
+      return NextResponse.json(
+        { error: "Coach tidak ditemukan atau tidak aktif" },
+        { status: 400 },
+      );
+    }
+  }
+
   const data: Record<string, unknown> = { ...parsed.data };
-  if (
-    data.membershipExpiresAt &&
-    typeof data.membershipExpiresAt === "string"
-  ) {
-    data.membershipExpiresAt = new Date(data.membershipExpiresAt as string);
+  if (data.date && typeof data.date === "string") {
+    data.date = new Date(data.date);
   }
 
-  // Sync aiDailyLimitMax when admin updates aiDailyLimit
-  if (typeof data.aiDailyLimit === "number") {
-    data.aiDailyLimitMax = data.aiDailyLimit;
-  }
-
-  const updated = await prisma.user.update({
-    where: { id, role: "MEMBER" },
+  const updated = await prisma.privateYoga.update({
+    where: { id },
     data,
+    include: {
+      coach: true,
+      bookings: { orderBy: { createdAt: "desc" } },
+    },
   });
+
   return NextResponse.json(updated);
 }
 
@@ -51,13 +60,6 @@ export async function DELETE(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  if (id === session.id) {
-    return NextResponse.json(
-      { error: "Tidak bisa menghapus akun sendiri" },
-      { status: 400 },
-    );
-  }
-
-  await prisma.user.delete({ where: { id, role: "MEMBER" } });
+  await prisma.privateYoga.delete({ where: { id } });
   return NextResponse.json({ success: true });
 }

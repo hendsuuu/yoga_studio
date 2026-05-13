@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { CalendarDays } from "lucide-react";
 import { LoginForm } from "@/components/auth/login-form";
 
 export const metadata = { title: "Login - Virtual Studio" };
@@ -25,6 +26,12 @@ export default function LoginPage() {
 
       <div className="bg-white/80 backdrop-blur-xl p-7 rounded-3xl shadow-xl border border-white/50 space-y-5">
         <LoginForm />
+        <Link
+          href="/booking"
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-primary/20 bg-rose-soft px-4 py-3 text-sm font-semibold text-primary transition-all hover:bg-rose-bg">
+          <CalendarDays className="h-4 w-4" />
+          Booking Private Yoga
+        </Link>
         <p className="text-center text-xs text-gray-400">
           Belum punya akun?{" "}
           <Link

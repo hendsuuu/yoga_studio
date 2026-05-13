@@ -17,6 +17,7 @@ import { usePushNotification } from "@/hooks/use-push-notification";
 import { useScheduleReminders } from "@/hooks/use-schedule-reminders";
 import { NotificationBlockedModal } from "@/components/member/notification-blocked-modal";
 import { toast } from "sonner";
+import { getAvatarUrl } from "@/lib/avatar";
 
 interface Props {
   schedule: Schedule;
@@ -139,10 +140,7 @@ export function ScheduleCard({ schedule }: Props) {
         {/* Coach info */}
         <div className="flex items-center gap-2.5 mb-3">
           <img
-            src={
-              schedule.coachPhoto ||
-              `https://ui-avatars.com/api/?name=${encodeURIComponent(schedule.coach)}&background=C08497&color=fff`
-            }
+            src={getAvatarUrl(schedule.coach, schedule.coachPhoto, 64)}
             alt={schedule.coach}
             className="w-9 h-9 rounded-lg object-cover border-2 border-white shadow-sm"
           />

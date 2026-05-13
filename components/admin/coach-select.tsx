@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Search, ChevronDown, X, Check } from "lucide-react";
 import type { Coach } from "@/types";
+import { getAvatarUrl } from "@/lib/avatar";
 
 interface CoachSelectProps {
   value: string;
@@ -137,10 +138,7 @@ export function CoachSelect({
                       : "hover:bg-gray-50 text-secondary"
                   }`}>
                   <img
-                    src={
-                      coach.photo ||
-                      `https://ui-avatars.com/api/?name=${encodeURIComponent(coach.name)}&background=C08497&color=fff&size=32`
-                    }
+                    src={getAvatarUrl(coach.name, coach.photo, 32)}
                     alt={coach.name}
                     className="w-7 h-7 rounded-lg object-cover border border-gray-100 shrink-0"
                   />

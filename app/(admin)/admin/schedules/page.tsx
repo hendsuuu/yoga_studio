@@ -17,6 +17,7 @@ import { Loader } from "@/components/ui/loader";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ConfirmDialog, FormModal } from "@/components/admin/dialogs";
 import { CoachSelect } from "@/components/admin/coach-select";
+import { StatusSwitch } from "@/components/admin/status-switch";
 import { formatHumanDate } from "@/lib/utils";
 import type { Schedule, Coach } from "@/types";
 
@@ -262,15 +263,13 @@ export default function AdminSchedulesPage() {
             value={form.zoomUrl}
             onChange={(e) => setForm({ ...form, zoomUrl: e.target.value })}
           />
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={form.isActive}
-              onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
-              className="rounded"
-            />
-            Aktif
-          </label>
+          <StatusSwitch
+            checked={form.isActive}
+            onChange={(checked) => setForm({ ...form, isActive: checked })}
+            enabledText="Aktif"
+            disabledText="Nonaktif"
+            description="Jadwal aktif tampil untuk member."
+          />
           <div className="flex gap-3 justify-end pt-2">
             <Button variant="outline" onClick={() => setShowForm(false)}>
               Batal
