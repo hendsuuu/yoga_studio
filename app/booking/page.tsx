@@ -45,7 +45,8 @@ export default async function BookingPage() {
           <div className="space-y-6">
             <Link
               href="/login"
-              className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white/70 px-3 py-1.5 text-xs font-semibold text-primary shadow-sm">
+              className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white/70 px-3 py-1.5 text-xs font-semibold text-primary shadow-sm"
+            >
               <LogIn className="h-3.5 w-3.5" />
               Login Member
             </Link>
@@ -59,7 +60,7 @@ export default async function BookingPage() {
               </h1>
               <p className="max-w-xl text-sm leading-7 text-gray-500 sm:text-base">
                 Pilih slot yang tersedia, isi biodata diri, lalu admin akan
-                melihat booking kamu di dashboard.
+                menghubungi kamu.
               </p>
             </div>
           </div>
@@ -82,7 +83,7 @@ export default async function BookingPage() {
             Slot Tersedia
           </h2>
           <p className="text-sm text-gray-400">
-            Semua jadwal di bawah bisa diakses tanpa akun member.
+            Semua jadwal di bawah bisa diakses.
           </p>
         </div>
 

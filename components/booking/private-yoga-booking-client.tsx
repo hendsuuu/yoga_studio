@@ -103,7 +103,8 @@ export function PrivateYogaBookingClient({
             return (
               <article
                 key={session.id}
-                className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
+                className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+              >
                 <div className="mb-4 flex items-start justify-between gap-4">
                   <div className="min-w-0">
                     <h3 className="line-clamp-2 font-serif text-xl italic text-secondary">
@@ -114,7 +115,11 @@ export function PrivateYogaBookingClient({
                     </p>
                   </div>
                   <img
-                    src={getAvatarUrl(session.coach.name, session.coach.photo, 96)}
+                    src={getAvatarUrl(
+                      session.coach.name,
+                      session.coach.photo,
+                      96,
+                    )}
                     alt={session.coach.name}
                     className="h-12 w-12 shrink-0 rounded-xl border border-rose-bg object-cover"
                   />
@@ -136,7 +141,10 @@ export function PrivateYogaBookingClient({
                     </p>
                   )}
                 </div>
-                <Button className="mt-5 w-full" onClick={() => openBooking(session)}>
+                <Button
+                  className="mt-5 w-full"
+                  onClick={() => openBooking(session)}
+                >
                   <UserRound className="h-4 w-4" />
                   Isi Biodata Booking
                 </Button>
@@ -168,8 +176,8 @@ export function PrivateYogaBookingClient({
                   Booking terkirim
                 </h4>
                 <p className="mt-2 text-sm leading-6 text-gray-500">
-                  Admin akan melihat biodata kamu di dashboard dan menghubungi
-                  nomor WhatsApp yang kamu masukkan.
+                  Admin akan melihat biodata kamu dan menghubungi nomor WhatsApp
+                  yang kamu masukkan.
                 </p>
                 <Button className="mt-6" onClick={() => setSelected(null)}>
                   Tutup
@@ -257,7 +265,8 @@ export function PrivateYogaBookingClient({
                   <Button
                     variant="outline"
                     onClick={() => setSelected(null)}
-                    disabled={loading}>
+                    disabled={loading}
+                  >
                     Batal
                   </Button>
                   <Button onClick={submitBooking} loading={loading}>
