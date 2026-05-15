@@ -67,8 +67,47 @@ model Coach {
     isActive    Boolean  @default(true)
     createdAt   DateTime @default(now())
     updatedAt   DateTime @updatedAt
+    privateYogaSessions PrivateYoga[]
 
     @@map("coaches")
+}
+
+model PrivateYoga {
+    id        String               @id @default(cuid())
+    title     String
+    date      DateTime
+    startTime String
+    endTime   String
+    coachId   String
+    coach     Coach                @relation(fields: [coachId], references: [id], onDelete: Restrict)
+    isActive  Boolean              @default(true)
+    createdAt DateTime             @default(now())
+    updatedAt DateTime             @updatedAt
+    bookings  PrivateYogaBooking[]
+
+    @@index([date, isActive])
+    @@index([coachId])
+    @@map("private_yoga_sessions")
+}
+
+model PrivateYogaBooking {
+    id             String      @id @default(cuid())
+    privateYogaId  String
+    privateYoga    PrivateYoga @relation(fields: [privateYogaId], references: [id], onDelete: Cascade)
+    fullName       String
+    whatsapp       String
+    email          String?
+    age            Int?
+    gender         String?
+    experience     String?
+    goal           String
+    healthNotes    String?
+    createdAt      DateTime    @default(now())
+    updatedAt      DateTime    @updatedAt
+
+    @@unique([privateYogaId, whatsapp])
+    @@index([privateYogaId, createdAt])
+    @@map("private_yoga_bookings")
 }
 
 model Schedule {

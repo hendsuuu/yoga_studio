@@ -24,6 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Loader } from "@/components/ui/loader";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ConfirmDialog, FormModal } from "@/components/admin/dialogs";
+import { StatusSwitch } from "@/components/admin/status-switch";
 import { formatHumanDate, daysUntil, addDaysLocal } from "@/lib/utils";
 import type { AdminMember } from "@/types";
 
@@ -437,20 +438,13 @@ export default function AdminMembersPage() {
               />
             </div>
           </div>
-          <div className="flex gap-4">
-            <div className="flex-1 space-y-1.5">
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                Status
-              </label>
-              <select
-                value={editActive ? "true" : "false"}
-                onChange={(e) => setEditActive(e.target.value === "true")}
-                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20">
-                <option value="true">Aktif</option>
-                <option value="false">Nonaktif</option>
-              </select>
-            </div>
-          </div>
+          <StatusSwitch
+            checked={editActive}
+            onChange={setEditActive}
+            enabledText="Aktif"
+            disabledText="Nonaktif"
+            description="Member aktif dapat login dan mengakses dashboard."
+          />
           <div className="flex gap-3 justify-end pt-2">
             <Button variant="outline" onClick={() => setEditing(null)}>
               Batal

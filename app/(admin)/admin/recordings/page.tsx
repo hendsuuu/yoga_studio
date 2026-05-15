@@ -17,6 +17,7 @@ import { Loader } from "@/components/ui/loader";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ConfirmDialog, FormModal } from "@/components/admin/dialogs";
 import { CoachSelect } from "@/components/admin/coach-select";
+import { StatusSwitch } from "@/components/admin/status-switch";
 import { formatHumanDate } from "@/lib/utils";
 import type { Recording } from "@/types";
 
@@ -225,17 +226,16 @@ export default function AdminRecordingsPage() {
             value={form.url}
             onChange={(e) => setForm({ ...form, url: e.target.value })}
           />
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={form.isPublished}
-              onChange={(e) =>
-                setForm({ ...form, isPublished: e.target.checked })
-              }
-              className="rounded"
-            />
-            Published
-          </label>
+          <StatusSwitch
+            checked={form.isPublished}
+            onChange={(checked) =>
+              setForm({ ...form, isPublished: checked })
+            }
+            label="Publikasi"
+            enabledText="Published"
+            disabledText="Draft"
+            description="Recording published tampil di library member."
+          />
           <div className="flex gap-3 justify-end pt-2">
             <Button variant="outline" onClick={() => setShowForm(false)}>
               Batal

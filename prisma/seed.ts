@@ -73,7 +73,7 @@ async function main() {
       phone: "6281234567010",
       gender: "Perempuan",
       photo:
-        "https://ui-avatars.com/api/?name=Ratna&background=C08497&color=fff",
+        "https://ui-avatars.com/api/?name=Ratna&background=C08497&color=fff&format=png",
       certificate: "RYT-500",
       specialty: "Vinyasa, Hatha",
     },
@@ -82,7 +82,7 @@ async function main() {
       phone: "6281234567011",
       gender: "Perempuan",
       photo:
-        "https://ui-avatars.com/api/?name=Sinta&background=C08497&color=fff",
+        "https://ui-avatars.com/api/?name=Sinta&background=C08497&color=fff&format=png",
       certificate: "E-RYT 200",
       specialty: "Yin Yoga, Restorative",
     },
@@ -91,7 +91,7 @@ async function main() {
       phone: "6281234567012",
       gender: "Laki-laki",
       photo:
-        "https://ui-avatars.com/api/?name=Dian&background=C08497&color=fff",
+        "https://ui-avatars.com/api/?name=Dian&background=C08497&color=fff&format=png",
       certificate: "RYT-200",
       specialty: "Power Yoga, Ashtanga",
     },
@@ -116,7 +116,7 @@ async function main() {
       timeRange: "06.00-07.00",
       coach: "Ibu Ratna",
       coachPhoto:
-        "https://ui-avatars.com/api/?name=Ratna&background=C08497&color=fff",
+        "https://ui-avatars.com/api/?name=Ratna&background=C08497&color=fff&format=png",
       certificate: "RYT-500",
       tools: "Mat, Blok, Strap",
       meetingId: "123 456 7890",
@@ -130,7 +130,7 @@ async function main() {
       timeRange: "17.00-18.00",
       coach: "Kak Sinta",
       coachPhoto:
-        "https://ui-avatars.com/api/?name=Sinta&background=C08497&color=fff",
+        "https://ui-avatars.com/api/?name=Sinta&background=C08497&color=fff&format=png",
       certificate: "E-RYT 200",
       tools: "Mat, Bolster",
       meetingId: "987 654 3210",
@@ -144,7 +144,7 @@ async function main() {
       timeRange: "07.00-08.00",
       coach: "Coach Dian",
       coachPhoto:
-        "https://ui-avatars.com/api/?name=Dian&background=C08497&color=fff",
+        "https://ui-avatars.com/api/?name=Dian&background=C08497&color=fff&format=png",
       certificate: "RYT-200",
       tools: "Mat, Handuk",
       meetingId: "555 666 7777",
@@ -158,6 +158,45 @@ async function main() {
     await prisma.schedule.create({ data: s });
   }
   console.log("✅ Schedules created");
+
+  // --- Private Yoga Sessions ---
+  const privateYogaCount = await prisma.privateYoga.count();
+  if (privateYogaCount === 0) {
+    const ratna = await prisma.coach.findFirst({ where: { name: "Ibu Ratna" } });
+    const sinta = await prisma.coach.findFirst({ where: { name: "Kak Sinta" } });
+    const dian = await prisma.coach.findFirst({ where: { name: "Coach Dian" } });
+    const privateYogaSessions = [
+      ratna && {
+        title: "Private Hatha Foundation",
+        date: new Date("2026-05-20"),
+        startTime: "08:00",
+        endTime: "09:00",
+        coachId: ratna.id,
+        isActive: true,
+      },
+      sinta && {
+        title: "Private Restorative Calm",
+        date: new Date("2026-05-21"),
+        startTime: "16:00",
+        endTime: "17:00",
+        coachId: sinta.id,
+        isActive: true,
+      },
+      dian && {
+        title: "Private Power Alignment",
+        date: new Date("2026-05-22"),
+        startTime: "07:00",
+        endTime: "08:00",
+        coachId: dian.id,
+        isActive: true,
+      },
+    ].filter((session): session is NonNullable<typeof session> => Boolean(session));
+
+    for (const session of privateYogaSessions) {
+      await prisma.privateYoga.create({ data: session });
+    }
+  }
+  console.log("✅ Private yoga sessions created");
 
   // --- Recordings ---
   const recordings = [

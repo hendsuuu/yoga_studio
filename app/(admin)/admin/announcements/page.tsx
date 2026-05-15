@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Loader } from "@/components/ui/loader";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ConfirmDialog, FormModal } from "@/components/admin/dialogs";
+import { StatusSwitch } from "@/components/admin/status-switch";
 import type { Announcement } from "@/types";
 
 const emptyForm = { message: "", isActive: true };
@@ -141,15 +142,13 @@ export default function AdminAnnouncementsPage() {
               onChange={(e) => setForm({ ...form, message: e.target.value })}
             />
           </div>
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={form.isActive}
-              onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
-              className="rounded"
-            />
-            Aktif
-          </label>
+          <StatusSwitch
+            checked={form.isActive}
+            onChange={(checked) => setForm({ ...form, isActive: checked })}
+            enabledText="Aktif"
+            disabledText="Nonaktif"
+            description="Pengumuman aktif tampil di dashboard member."
+          />
           <div className="flex gap-3 justify-end pt-2">
             <Button variant="outline" onClick={() => setShowForm(false)}>
               Batal

@@ -11,9 +11,29 @@ import {
 import { loginSchema } from "@/lib/validators/auth";
 import { cookies } from "next/headers";
 import { logger } from "@/lib/logger";
+import {
+  consumeToken,
+  getClientIp,
+  rateLimitResponse,
+} from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
   try {
+    const ip = getClientIp(req);
+    const ipLimit = consumeToken({
+      namespace: "login-ip",
+      key: ip,
+      capacity: 20,
+      refillTokens: 1,
+      refillIntervalMs: 30 * 1000,
+    });
+    if (!ipLimit.allowed) {
+      return rateLimitResponse(
+        ipLimit,
+        "Terlalu banyak percobaan login. Coba lagi sebentar lagi.",
+      );
+    }
+
     const body = await req.json();
     const parsed = loginSchema.safeParse(body);
 
@@ -29,6 +49,19 @@ export async function POST(req: Request) {
 
     const { email, password } = parsed.data;
     const normalizedEmail = email.toLowerCase().trim();
+    const accountLimit = consumeToken({
+      namespace: "login-account",
+      key: `${ip}:${normalizedEmail}`,
+      capacity: 6,
+      refillTokens: 1,
+      refillIntervalMs: 60 * 1000,
+    });
+    if (!accountLimit.allowed) {
+      return rateLimitResponse(
+        accountLimit,
+        "Percobaan login untuk akun ini terlalu sering. Tunggu sebentar lalu coba lagi.",
+      );
+    }
 
     const user = await prisma.user.findUnique({
       where: { email: normalizedEmail },
